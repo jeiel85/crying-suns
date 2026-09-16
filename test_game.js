@@ -91,6 +91,16 @@ vm.runInThisContext(scriptMatch[1]);
 
 async function runTests() {
   console.log('Testing Game Engine Initialization...');
+  console.log('Testing Page Load Initial State & First Frames (Pre-Run)...');
+  console.assert(state.systems.shields !== undefined, 'Shields should be defined on initial load');
+  console.assert(state.rooms.length > 0, 'Rooms should be defined on initial load');
+  console.assert(state.weapons.length > 0, 'Weapons should be defined on initial load');
+  console.assert(state.crew.length > 0, 'Crew should be defined on initial load');
+  // Ensure gameLoop executes cleanly before run starts without crashing
+  gameLoop(1000);
+  gameLoop(1016);
+  console.log('Pre-run frames executed smoothly without crash!');
+
   console.log('Starting run with Kestrel ship...');
   startNewRun();
 

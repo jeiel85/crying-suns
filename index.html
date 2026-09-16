@@ -61,6 +61,7 @@
     /* Top HUD */
     #top-hud {
       height: 52px;
+      flex-shrink: 0;
       background: linear-gradient(180deg, #0f1c2d, #091320);
       border-bottom: 2px solid var(--border-cyan);
       display: flex;
@@ -207,6 +208,7 @@
     /* Main Workspace */
     #workspace {
       flex: 1;
+      min-height: 0;
       position: relative;
       background: #020409;
       display: flex;
@@ -269,6 +271,7 @@
     /* Bottom Control Panel */
     #bottom-panel {
       height: 142px;
+      flex-shrink: 0;
       background: linear-gradient(0deg, #09111c, #0d1a29);
       border-top: 2px solid var(--border-cyan);
       display: flex;
@@ -2149,6 +2152,9 @@
         this.selectedCrew = null;
         this.selectedWeaponIndex = null;
         this.inCombat = false;
+
+        // Initialize default ship so state has valid systems, rooms, doors, crew, weapons right away
+        this.initShip(SHIP_CLASSES.kestrel);
       }
 
       initShip(shipDef) {
@@ -2693,9 +2699,13 @@
     }
 
     function resizeCanvas() {
-      const rect = document.getElementById('workspace').getBoundingClientRect();
-      canvas.width = rect.width;
-      canvas.height = rect.height;
+      const ws = document.getElementById('workspace');
+      if (!ws) return;
+      const rect = ws.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+      }
     }
     window.addEventListener('resize', resizeCanvas);
 
@@ -2705,18 +2715,23 @@
     let lastTime = performance.now();
 
     function gameLoop(now) {
-      const dt = Math.min(0.1, (now - lastTime) / 1000);
-      lastTime = now;
-
-      if (!state.paused) {
-        updateSimulation(dt);
-      }
-
-      render();
       requestAnimationFrame(gameLoop);
+      try {
+        const dt = Math.min(0.1, (now - lastTime) / 1000);
+        lastTime = now;
+
+        if (!state.paused && state.map) {
+          updateSimulation(dt);
+        }
+
+        render();
+      } catch (err) {
+        console.error('gameLoop error:', err);
+      }
     }
 
     function updateSimulation(dt) {
+      if (!state.systems || !state.systems.shields || !state.rooms || state.rooms.length === 0) return;
       // 1. Oxygen & Fire / Breach simulation
       state.rooms.forEach(room => {
         const o2SysPower = state.getEffectiveSystemPower('oxygen');
@@ -3834,6 +3849,7 @@
     const mapCtx = mapCanvas.getContext('2d');
 
     function renderMap() {
+      if (!state.map || !state.map.nodes) return;
       mapCtx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
       const w = mapCanvas.width;
       const h = mapCanvas.height;
@@ -4284,7 +4300,7 @@
     }
 
     function startNewRun() {
-      const shipDef = SHIP_CLASSES[state.selectedShipId];
+      const shipDef = SHIP_CLASSES[state.selectedShipId] || SHIP_CLASSES.kestrel;
       state.initShip(shipDef);
       state.sector = 1;
       state.map = new GalaxyMap(1);
@@ -4302,6 +4318,9 @@
       closeModal('modal-gameover');
       sound.init();
       sound.playJump();
+      resizeCanvas();
+      updateHUD();
+      render();
     }
 
     function continueRun() {
@@ -4310,6 +4329,9 @@
         closeModal('modal-gameover');
         sound.init();
         sound.playJump();
+        resizeCanvas();
+        updateHUD();
+        render();
       } else {
         startNewRun();
       }
@@ -4326,6 +4348,7 @@
     // Auto initialize, set language and run loop
     resizeCanvas();
     updateStaticTexts();
+    updateHUD();
     renderStartScreen();
     requestAnimationFrame(gameLoop);
   </script>
