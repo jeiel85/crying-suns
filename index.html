@@ -1,0 +1,3994 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Void Strider: The Last Bastion | 우주선 로그라이크</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><polygon points='50,10 90,85 50,70 10,85' fill='%2300e5ff'/></svg>">
+  <style>
+    :root {
+      --bg-dark: #070a12;
+      --bg-panel: #0d1522;
+      --bg-panel-alt: #131e30;
+      --border-cyan: #00d2ff;
+      --border-dim: #1d3557;
+      --text-main: #e2f1ff;
+      --text-dim: #7d9bb8;
+      --accent-cyan: #00f0ff;
+      --accent-green: #00ff88;
+      --accent-red: #ff3355;
+      --accent-amber: #ffaa00;
+      --accent-purple: #bd00ff;
+      --shield-blue: #00bfff;
+      --hull-green: #2ecc71;
+      --ion-blue: #00ffff;
+      --font-mono: 'Consolas', 'Courier New', monospace, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-mono);
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* CRT Scanline overlay */
+    .scanlines {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 999;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
+      background-size: 100% 4px, 6px 100%;
+      opacity: 0.55;
+    }
+
+    /* Top HUD */
+    #top-hud {
+      height: 52px;
+      background: linear-gradient(180deg, #0f1c2d, #091320);
+      border-bottom: 2px solid var(--border-cyan);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 20;
+      box-shadow: 0 2px 15px rgba(0, 229, 255, 0.15);
+    }
+
+    .hud-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .ship-name-badge {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ship-title {
+      font-size: 14px;
+      font-weight: bold;
+      color: var(--accent-cyan);
+      letter-spacing: 1px;
+    }
+
+    .sector-info {
+      font-size: 11px;
+      color: var(--accent-amber);
+    }
+
+    .hull-bar-container {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .hull-label {
+      font-size: 10px;
+      color: var(--text-dim);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .hull-segments {
+      display: flex;
+      gap: 2px;
+      height: 14px;
+      background: #050b12;
+      padding: 2px;
+      border: 1px solid #1a324b;
+      border-radius: 2px;
+    }
+
+    .hull-seg {
+      width: 6px;
+      height: 100%;
+      background: var(--hull-green);
+      transition: background 0.2s;
+    }
+
+    .hull-seg.damaged {
+      background: #1a2736;
+    }
+
+    .hull-seg.critical {
+      background: var(--accent-red);
+      animation: blink 0.8s infinite;
+    }
+
+    .res-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #08121d;
+      border: 1px solid var(--border-dim);
+      padding: 4px 9px;
+      border-radius: 3px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .res-badge .icon {
+      font-size: 13px;
+    }
+
+    .res-scrap { color: #f1c40f; border-color: #796109; }
+    .res-fuel { color: #e67e22; border-color: #87430c; }
+    .res-missiles { color: #e74c3c; border-color: #7a1d12; }
+    .res-evasion { color: #3498db; border-color: #1a4d6f; }
+
+    .nav-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .hud-btn {
+      background: #112235;
+      color: var(--accent-cyan);
+      border: 1px solid var(--border-cyan);
+      padding: 6px 12px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: bold;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .hud-btn:hover {
+      background: var(--accent-cyan);
+      color: #000;
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+    }
+
+    .hud-btn.jump-btn {
+      background: linear-gradient(135deg, #e67e22, #d35400);
+      color: #fff;
+      border-color: #f39c12;
+    }
+
+    .hud-btn.jump-btn:hover {
+      background: #f39c12;
+      color: #000;
+      box-shadow: 0 0 12px rgba(243, 156, 18, 0.6);
+    }
+
+    /* Main Workspace */
+    #workspace {
+      flex: 1;
+      position: relative;
+      background: #020409;
+      display: flex;
+    }
+
+    #game-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Active Pause Banner */
+    #pause-banner {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(231, 76, 60, 0.9);
+      border: 2px solid #ff7675;
+      color: #fff;
+      font-weight: 900;
+      font-size: 15px;
+      letter-spacing: 2px;
+      padding: 4px 20px;
+      border-radius: 4px;
+      box-shadow: 0 0 15px rgba(231, 76, 60, 0.7);
+      pointer-events: none;
+      display: none;
+      z-index: 30;
+      animation: pulse 1.2s infinite;
+    }
+
+    /* Quick Doors Controls */
+    #door-controls {
+      position: absolute;
+      top: 14px;
+      left: 20px;
+      display: flex;
+      gap: 8px;
+      z-index: 25;
+    }
+
+    .door-btn {
+      background: rgba(13, 27, 42, 0.85);
+      border: 1px solid var(--border-dim);
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+    }
+
+    .door-btn:hover {
+      border-color: var(--border-cyan);
+      color: var(--accent-cyan);
+    }
+
+    /* Bottom Control Panel */
+    #bottom-panel {
+      height: 142px;
+      background: linear-gradient(0deg, #09111c, #0d1a29);
+      border-top: 2px solid var(--border-cyan);
+      display: flex;
+      padding: 8px 16px;
+      gap: 14px;
+      z-index: 20;
+    }
+
+    /* Power Reactor Block */
+    .reactor-box {
+      width: 105px;
+      background: #070e17;
+      border: 1px solid var(--border-dim);
+      border-radius: 4px;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .reactor-header {
+      font-size: 10px;
+      color: var(--accent-cyan);
+      font-weight: bold;
+      margin-bottom: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    .reactor-bars {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap-reverse;
+      align-content: flex-start;
+      gap: 3px;
+      padding: 2px;
+      overflow: hidden;
+    }
+
+    .power-pip {
+      width: 11px;
+      height: 7px;
+      background: var(--accent-green);
+      border-radius: 1px;
+      box-shadow: 0 0 3px rgba(0, 255, 136, 0.4);
+    }
+
+    .power-pip.unallocated {
+      background: #00ff88;
+    }
+
+    .power-pip.used {
+      background: #113824;
+      box-shadow: none;
+    }
+
+    .power-count {
+      font-size: 12px;
+      font-weight: bold;
+      color: var(--accent-green);
+      margin-top: 2px;
+    }
+
+    /* Systems Control Columns */
+    .systems-box {
+      display: flex;
+      gap: 8px;
+      background: #070e17;
+      border: 1px solid var(--border-dim);
+      border-radius: 4px;
+      padding: 6px 10px;
+    }
+
+    .system-column {
+      width: 44px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .sys-power-track {
+      flex: 1;
+      width: 22px;
+      background: #050b12;
+      border: 1px solid #1a324b;
+      display: flex;
+      flex-direction: column-reverse;
+      padding: 2px;
+      gap: 2px;
+      border-radius: 2px;
+      margin-bottom: 4px;
+      cursor: pointer;
+    }
+
+    .sys-pip {
+      width: 100%;
+      height: 7px;
+      background: #152233;
+      border-radius: 1px;
+      transition: background 0.1s;
+    }
+
+    .sys-pip.active {
+      background: var(--accent-green);
+      box-shadow: 0 0 4px rgba(0, 255, 136, 0.5);
+    }
+
+    .sys-pip.damaged {
+      background: var(--accent-red) !important;
+      box-shadow: 0 0 4px rgba(255, 51, 85, 0.5);
+    }
+
+    .sys-pip.ion-locked {
+      background: var(--ion-blue) !important;
+      animation: ionPulse 0.5s infinite;
+    }
+
+    .sys-btn-group {
+      display: flex;
+      gap: 2px;
+      margin-bottom: 3px;
+    }
+
+    .sys-adj-btn {
+      width: 18px;
+      height: 18px;
+      background: #122133;
+      border: 1px solid #1d395a;
+      color: var(--text-main);
+      font-size: 11px;
+      line-height: 16px;
+      text-align: center;
+      border-radius: 2px;
+      cursor: pointer;
+    }
+
+    .sys-adj-btn:hover {
+      background: var(--accent-cyan);
+      color: #000;
+    }
+
+    .sys-icon-label {
+      font-size: 10px;
+      font-weight: bold;
+      color: var(--text-dim);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .sys-name {
+      font-size: 9px;
+      color: var(--accent-cyan);
+    }
+
+    /* Weapon Slots Control */
+    .weapons-box {
+      flex: 1;
+      background: #070e17;
+      border: 1px solid var(--border-dim);
+      border-radius: 4px;
+      padding: 6px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .weapons-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .weapons-title {
+      font-size: 11px;
+      font-weight: bold;
+      color: var(--accent-cyan);
+      letter-spacing: 0.5px;
+    }
+
+    .autofire-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      color: var(--text-dim);
+      cursor: pointer;
+    }
+
+    .autofire-btn {
+      padding: 2px 8px;
+      background: #152538;
+      border: 1px solid #243e5c;
+      border-radius: 2px;
+      color: #fff;
+      font-size: 10px;
+      font-family: var(--font-mono);
+      cursor: pointer;
+    }
+
+    .autofire-btn.active {
+      background: var(--accent-amber);
+      color: #000;
+      border-color: #ffc107;
+      font-weight: bold;
+    }
+
+    .weapon-slots {
+      display: flex;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .weapon-card {
+      flex: 1;
+      background: #0c1826;
+      border: 1px solid #1a324b;
+      border-radius: 3px;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: border 0.15s;
+    }
+
+    .weapon-card:hover {
+      border-color: var(--border-cyan);
+    }
+
+    .weapon-card.selected {
+      border-color: var(--accent-amber);
+      box-shadow: 0 0 8px rgba(255, 170, 0, 0.4);
+    }
+
+    .weapon-card.unpowered {
+      opacity: 0.5;
+    }
+
+    .wpn-top {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+    }
+
+    .wpn-name {
+      font-weight: bold;
+      color: #fff;
+      font-size: 11px;
+    }
+
+    .wpn-power-req {
+      color: var(--accent-green);
+      font-weight: bold;
+    }
+
+    .wpn-info {
+      font-size: 9px;
+      color: var(--text-dim);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .wpn-charge-bg {
+      height: 8px;
+      background: #060c14;
+      border: 1px solid #192b3d;
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+      margin-top: 4px;
+    }
+
+    .wpn-charge-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #f39c12, #f1c40f);
+      transition: width 0.05s linear;
+    }
+
+    .wpn-charge-bar.ready {
+      background: var(--accent-green);
+      box-shadow: 0 0 6px rgba(0, 255, 136, 0.8);
+      animation: readyPulse 0.8s infinite;
+    }
+
+    .wpn-target-tag {
+      font-size: 9px;
+      color: var(--accent-red);
+      font-weight: bold;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Crew Panel */
+    .crew-roster {
+      width: 175px;
+      background: #070e17;
+      border: 1px solid var(--border-dim);
+      border-radius: 4px;
+      padding: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      overflow-y: auto;
+    }
+
+    .crew-roster-title {
+      font-size: 10px;
+      font-weight: bold;
+      color: var(--accent-cyan);
+      margin-bottom: 2px;
+    }
+
+    .crew-card {
+      background: #0d1a29;
+      border: 1px solid #182f49;
+      border-radius: 3px;
+      padding: 4px 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      font-size: 10px;
+      transition: all 0.15s;
+    }
+
+    .crew-card:hover {
+      border-color: var(--border-cyan);
+    }
+
+    .crew-card.selected {
+      border-color: var(--accent-amber);
+      background: #172d47;
+      box-shadow: 0 0 6px rgba(255, 170, 0, 0.3);
+    }
+
+    .crew-avatar {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 10px;
+      color: #000;
+    }
+
+    .crew-details {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .crew-name-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      font-weight: bold;
+    }
+
+    .crew-hp-bar {
+      height: 4px;
+      background: #060c14;
+      border-radius: 1px;
+      overflow: hidden;
+    }
+
+    .crew-hp-fill {
+      height: 100%;
+      background: var(--accent-green);
+      transition: width 0.2s;
+    }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(4, 8, 14, 0.88);
+      backdrop-filter: blur(5px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-window {
+      background: #0c1827;
+      border: 2px solid var(--border-cyan);
+      border-radius: 6px;
+      box-shadow: 0 0 30px rgba(0, 210, 255, 0.25);
+      width: 820px;
+      max-width: 94vw;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: modalOpen 0.2s ease-out;
+    }
+
+    .modal-header {
+      background: #07101b;
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border-dim);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-title {
+      font-size: 15px;
+      font-weight: bold;
+      color: var(--accent-cyan);
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .modal-close-btn {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 20px;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    .modal-close-btn:hover {
+      color: var(--accent-red);
+    }
+
+    .modal-body {
+      padding: 18px;
+      overflow-y: auto;
+      flex: 1;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    /* Event Modal */
+    .event-text {
+      font-size: 14px;
+      margin-bottom: 18px;
+      color: #d8ecff;
+      background: #07111d;
+      padding: 14px;
+      border-left: 3px solid var(--border-cyan);
+      border-radius: 0 4px 4px 0;
+      white-space: pre-line;
+    }
+
+    .event-choices {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .choice-btn {
+      background: #102135;
+      border: 1px solid #1c3d61;
+      color: var(--text-main);
+      padding: 10px 14px;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .choice-btn:hover {
+      background: #173354;
+      border-color: var(--border-cyan);
+      color: #fff;
+      transform: translateX(4px);
+    }
+
+    /* Upgrades Screen */
+    .upgrades-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 14px;
+    }
+
+    .upgrade-card {
+      background: #081320;
+      border: 1px solid var(--border-dim);
+      border-radius: 4px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .upg-title {
+      font-weight: bold;
+      font-size: 13px;
+      color: var(--accent-cyan);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .upg-bars {
+      display: flex;
+      gap: 3px;
+      height: 14px;
+      background: #040910;
+      padding: 2px;
+      border: 1px solid #15293d;
+      border-radius: 2px;
+    }
+
+    .upg-pip {
+      flex: 1;
+      background: #122233;
+      border-radius: 1px;
+    }
+
+    .upg-pip.owned {
+      background: var(--accent-green);
+    }
+
+    .upg-action-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+    }
+
+    .upg-cost {
+      font-size: 12px;
+      color: #f1c40f;
+      font-weight: bold;
+    }
+
+    .upg-buy-btn {
+      background: #162c45;
+      color: var(--accent-cyan);
+      border: 1px solid #234d7a;
+      padding: 4px 10px;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .upg-buy-btn:hover:not(:disabled) {
+      background: var(--accent-cyan);
+      color: #000;
+    }
+
+    .upg-buy-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* Store Screen */
+    .store-sections {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .store-category-title {
+      font-size: 13px;
+      font-weight: bold;
+      color: var(--accent-amber);
+      border-bottom: 1px solid #253e5b;
+      padding-bottom: 4px;
+      margin-bottom: 8px;
+    }
+
+    .store-items-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .store-item-card {
+      background: #091422;
+      border: 1px solid #1c3652;
+      border-radius: 4px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .store-item-name {
+      font-weight: bold;
+      color: #fff;
+      font-size: 12px;
+    }
+
+    .store-item-desc {
+      font-size: 10px;
+      color: var(--text-dim);
+      line-height: 1.4;
+    }
+
+    /* Galaxy Map Canvas */
+    #map-canvas {
+      width: 100%;
+      height: 440px;
+      background: #03070e;
+      border: 1px solid var(--border-dim);
+      border-radius: 4px;
+      display: block;
+    }
+
+    /* Start / Game Over Screens */
+    .hero-modal {
+      text-align: center;
+      padding: 24px 20px;
+    }
+
+    .hero-title {
+      font-size: 30px;
+      font-weight: 900;
+      color: var(--accent-cyan);
+      text-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
+      margin-bottom: 4px;
+      letter-spacing: 2px;
+    }
+
+    .hero-subtitle {
+      font-size: 13px;
+      color: var(--text-dim);
+      margin-bottom: 22px;
+      line-height: 1.6;
+    }
+
+    .ship-select-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+
+    .ship-choice-card {
+      background: #091320;
+      border: 2px solid #1c3550;
+      border-radius: 4px;
+      padding: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .ship-choice-card:hover {
+      border-color: var(--border-cyan);
+    }
+
+    .ship-choice-card.selected {
+      border-color: var(--accent-cyan);
+      background: #11253e;
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+    }
+
+    .ship-choice-card.locked {
+      opacity: 0.4;
+      cursor: not-allowed;
+      border-color: #111e2b;
+    }
+
+    .start-game-btn {
+      background: linear-gradient(135deg, #00b4d8, #0077b6);
+      border: none;
+      color: #fff;
+      font-family: var(--font-mono);
+      font-size: 15px;
+      font-weight: bold;
+      padding: 12px 32px;
+      border-radius: 4px;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(0, 180, 216, 0.4);
+      transition: all 0.2s;
+    }
+
+    .start-game-btn:hover {
+      transform: scale(1.04);
+      box-shadow: 0 0 25px rgba(0, 240, 255, 0.7);
+    }
+
+    .start-game-btn.secondary {
+      background: #1a324b;
+      border: 1px solid var(--border-cyan);
+      box-shadow: none;
+    }
+
+    .start-game-btn.secondary:hover {
+      background: var(--accent-cyan);
+      color: #000;
+    }
+
+    /* Keybindings Hint */
+    #quick-hints {
+      position: absolute;
+      bottom: 6px;
+      right: 14px;
+      font-size: 10px;
+      color: #4a6785;
+      pointer-events: none;
+      z-index: 25;
+      display: flex;
+      gap: 12px;
+    }
+
+    .hint-key {
+      color: var(--accent-cyan);
+      font-weight: bold;
+    }
+
+    /* Animations */
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+    @keyframes pulse { 0%, 100% { opacity: 1; transform: translateX(-50%) scale(1); } 50% { opacity: 0.85; transform: translateX(-50%) scale(0.97); } }
+    @keyframes readyPulse { 0%, 100% { filter: drop-shadow(0 0 4px #00ff88); } 50% { filter: drop-shadow(0 0 8px #00ff88); } }
+    @keyframes ionPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    @keyframes modalOpen { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+  </style>
+</head>
+<body>
+  <div class="scanlines"></div>
+
+  <!-- TOP STATUS HUD -->
+  <header id="top-hud">
+    <div class="hud-group">
+      <div class="ship-name-badge">
+        <span class="ship-title" id="hud-ship-name">USS AEGIS-7</span>
+        <span class="sector-info" id="hud-sector-info">SECTOR 1: FEDERATION FRONTIER</span>
+      </div>
+
+      <div class="hull-bar-container">
+        <div class="hull-label">
+          <span>선체 장갑 (HULL)</span>
+          <span id="hud-hull-txt">30 / 30</span>
+        </div>
+        <div class="hull-segments" id="hud-hull-segments"></div>
+      </div>
+
+      <div class="res-badge res-evasion" title="회피 확률 (엔진 출력 & 조종 승무원)">
+        <span class="icon">⮑</span>
+        <span id="hud-evade-txt">20%</span>
+      </div>
+
+      <div class="res-badge res-shields" style="color:var(--shield-blue); border-color:#164e63;" title="다층 에너지 방어막">
+        <span class="icon">🛡️</span>
+        <span id="hud-shield-txt">1 / 1</span>
+      </div>
+    </div>
+
+    <div class="hud-group">
+      <div class="res-badge res-scrap" title="스크랩 (강화 및 구매 자원)">
+        <span class="icon">⚙️</span>
+        <span id="hud-scrap-txt">30</span>
+      </div>
+
+      <div class="res-badge res-fuel" title="FTL 점프 연료">
+        <span class="icon">⛽</span>
+        <span id="hud-fuel-txt">16</span>
+      </div>
+
+      <div class="res-badge res-missiles" title="장갑 관통 미사일 탄약">
+        <span class="icon">🚀</span>
+        <span id="hud-missiles-txt">8</span>
+      </div>
+
+      <button class="hud-btn" id="btn-sound-toggle" title="사운드 음소거/켜기">
+        <span id="sound-icon">🔊</span>
+      </button>
+
+      <div class="nav-buttons">
+        <button class="hud-btn" id="btn-upgrades" title="함선 시스템 & 원자로 강화 [U]">
+          <span>🛠️</span> 강화
+        </button>
+        <button class="hud-btn jump-btn" id="btn-map" title="성계 은하 지도 및 FTL 도약 [M]">
+          <span>🌌</span> 성계 지도
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CANVAS WORKSPACE -->
+  <main id="workspace">
+    <canvas id="game-canvas"></canvas>
+
+    <div id="pause-banner">⏸ 전술 일시정지 (Active Pause) - [SPACE]</div>
+
+    <!-- Quick Doors & Venting Controls -->
+    <div id="door-controls">
+      <button class="door-btn" id="btn-doors-open" title="선내 모든 내부 문 개방 [Tab]">내부문 개방</button>
+      <button class="door-btn" id="btn-doors-close" title="모든 문 폐쇄">모든 문 폐쇄</button>
+      <button class="door-btn" id="btn-doors-vent" style="color:var(--accent-red); border-color:#8b0000;" title="외부 에어락을 개방해 진공으로 화재 소화 및 침투 적 질식 [V]">비상 에어락 배출 (진공)</button>
+    </div>
+
+    <div id="quick-hints">
+      <span><span class="hint-key">[Space]</span> 일시정지</span>
+      <span><span class="hint-key">[1-4]</span> 무기조준</span>
+      <span><span class="hint-key">[A]</span> 자동발사</span>
+      <span><span class="hint-key">[V]</span> 에어락배출</span>
+      <span><span class="hint-key">[M]</span> 지도</span>
+      <span><span class="hint-key">[U]</span> 강화</span>
+    </div>
+  </main>
+
+  <!-- BOTTOM CONTROL PANEL -->
+  <footer id="bottom-panel">
+    <!-- Reactor Pool -->
+    <div class="reactor-box" title="원자로 가용 전력">
+      <div class="reactor-header">원자로 동력</div>
+      <div class="reactor-bars" id="reactor-pool-bars"></div>
+      <div class="power-count" id="reactor-power-txt">0 / 8</div>
+    </div>
+
+    <!-- Systems Subsystems Columns -->
+    <div class="systems-box" id="systems-container"></div>
+
+    <!-- Weapons Slots -->
+    <div class="weapons-box">
+      <div class="weapons-header">
+        <span class="weapons-title">함포 무장 관제 어레이 (WEAPONS ARRAY)</span>
+        <div class="autofire-toggle">
+          <button class="autofire-btn" id="btn-autofire">자동 발사: OFF</button>
+        </div>
+      </div>
+      <div class="weapon-slots" id="weapon-slots-container"></div>
+    </div>
+
+    <!-- Crew Roster -->
+    <div class="crew-roster" id="crew-roster-container">
+      <div class="crew-roster-title">승무원 명단</div>
+      <!-- Crew cards populated by JS -->
+    </div>
+  </footer>
+
+  <!-- MODAL: GALAXY MAP -->
+  <div class="modal-overlay" id="modal-map">
+    <div class="modal-window" style="width: 880px;">
+      <div class="modal-header">
+        <div class="modal-title"><span>🌌</span> 은하계 비콘 항로 지도 (SECTOR NAVIGATION)</div>
+        <button class="modal-close-btn" id="btn-close-map">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 10px;">
+        <canvas id="map-canvas" width="850" height="420"></canvas>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; font-size:12px; color:var(--text-dim);">
+          <div style="display:flex; gap:16px;">
+            <span><strong style="color:var(--accent-red);">🔴 붉은 파동선</strong>: 반란군 추격 함대 경고선</span>
+            <span><strong style="color:var(--accent-cyan);">🔵 점</strong>: 현재 위치</span>
+            <span><strong style="color:var(--accent-green);">🟢 점</strong>: 도약 가능 비콘</span>
+            <span><strong style="color:#bd00ff;">🟣 구름</strong>: 성운 (추격 함대 속도 50% 지연)</span>
+          </div>
+          <div>연료 1 소모 / 점프</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: UPGRADES -->
+  <div class="modal-overlay" id="modal-upgrades">
+    <div class="modal-window" style="width: 780px;">
+      <div class="modal-header">
+        <div class="modal-title"><span>🛠️</span> 함선 서브시스템 & 원자로 강화 (SHIP UPGRADES)</div>
+        <button class="modal-close-btn" id="btn-close-upgrades">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex; justify-content:space-between; margin-bottom:16px; padding:8px 12px; background:#07121e; border:1px solid #16324d; border-radius:4px;">
+          <span>보유 스크랩: <strong style="color:#f1c40f;" id="upg-current-scrap">0</strong> ⚙️</span>
+          <span>원자로 용량: <strong style="color:var(--accent-green);" id="upg-current-reactor">0</strong> 전력</span>
+        </div>
+        <div class="upgrades-grid" id="upgrades-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: STORE -->
+  <div class="modal-overlay" id="modal-store">
+    <div class="modal-window" style="width: 760px;">
+      <div class="modal-header">
+        <div class="modal-title"><span>🏪</span> 성계 보급 전초기지 상점 (OUTPOST STORE)</div>
+        <button class="modal-close-btn" id="btn-close-store">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex; justify-content:space-between; margin-bottom:16px; padding:8px 12px; background:#07121e; border:1px solid #16324d; border-radius:4px;">
+          <span>보유 스크랩: <strong style="color:#f1c40f;" id="store-current-scrap">0</strong> ⚙️</span>
+          <span>선체 상태: <strong style="color:var(--hull-green);" id="store-current-hull">30 / 30</strong></span>
+        </div>
+        <div class="store-sections" id="store-content"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: STORY EVENT -->
+  <div class="modal-overlay" id="modal-event">
+    <div class="modal-window" style="width: 640px;">
+      <div class="modal-header">
+        <div class="modal-title" id="event-title"><span>📡</span> 통신 수신 중...</div>
+      </div>
+      <div class="modal-body">
+        <div class="event-text" id="event-text"></div>
+        <div class="event-choices" id="event-choices"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: GAME OVER / VICTORY -->
+  <div class="modal-overlay" id="modal-gameover">
+    <div class="modal-window" style="width: 580px;">
+      <div class="modal-body hero-modal">
+        <div class="hero-title" id="gameover-title">함선 침몰</div>
+        <div class="hero-subtitle" id="gameover-subtitle">선체 장갑이 모두 붕괴되어 우주의 파편으로 사라졌습니다...</div>
+        <div style="background:#07121e; padding:16px; border:1px solid #1c3957; border-radius:4px; margin-bottom:20px; text-align:left; font-size:13px; line-height:1.8;">
+          <div>최종 도달 섹터: <strong style="color:var(--accent-cyan);" id="stat-sector">1</strong></div>
+          <div>격퇴한 적 함선: <strong style="color:var(--accent-red);" id="stat-kills">0</strong> 척</div>
+          <div>총 수집 스크랩: <strong style="color:#f1c40f;" id="stat-scrap">0</strong> ⚙️</div>
+          <div>탐사한 비콘 수: <strong style="color:var(--accent-green);" id="stat-beacons">0</strong> 개</div>
+        </div>
+        <button class="start-game-btn" id="btn-restart-run">새로운 항해 시작</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: START SCREEN -->
+  <div class="modal-overlay active" id="modal-start">
+    <div class="modal-window" style="width: 740px;">
+      <div class="modal-body hero-modal">
+        <div class="hero-title">VOID STRIDER</div>
+        <div style="font-size:15px; color:var(--accent-cyan); font-weight:bold; letter-spacing:1px; margin-bottom:6px;">
+          THE LAST BASTION
+        </div>
+        <div class="hero-subtitle">
+          연방이 함락되었습니다. 당신은 기밀 암호 데이터를 지닌 순양함의 함장입니다.<br>
+          추격해 오는 반란군 함대의 포위망을 뚫고 8개 섹터를 넘어 최종 사령부에 도달하십시오!
+        </div>
+
+        <div class="ship-select-grid" id="ship-select-grid">
+          <!-- Ship selection cards -->
+        </div>
+
+        <div style="display:flex; justify-content:center; gap:16px;" id="start-actions-row">
+          <button class="start-game-btn" id="btn-start-run">새로운 임무 개시</button>
+          <button class="start-game-btn secondary" id="btn-continue-run" style="display:none;">이전 항해 이어하기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ==========================================================================
+       VOID STRIDER: COMPLETE STANDALONE ENGINE
+       Pure JavaScript HTML5 Canvas & Web Audio API
+       ========================================================================== */
+
+    // --------------------------------------------------------------------------
+    // 1. PROCEDURAL SOUND SYNTHESIZER (Web Audio API)
+    // --------------------------------------------------------------------------
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+        this.bgOsc = null;
+        this.bgGain = null;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+          this.startAmbient();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      toggleMute() {
+        this.muted = !this.muted;
+        if (this.bgGain) {
+          this.bgGain.gain.setValueAtTime(this.muted ? 0 : 0.035, this.ctx.currentTime);
+        }
+        return this.muted;
+      }
+
+      startAmbient() {
+        if (!this.ctx || this.bgGain) return;
+        try {
+          this.bgGain = this.ctx.createGain();
+          this.bgGain.gain.setValueAtTime(this.muted ? 0 : 0.035, this.ctx.currentTime);
+          this.bgGain.connect(this.ctx.destination);
+
+          this.bgOsc = this.ctx.createOscillator();
+          this.bgOsc.type = 'sawtooth';
+          this.bgOsc.frequency.setValueAtTime(55, this.ctx.currentTime); // 55Hz deep space bass
+
+          const filter = this.ctx.createBiquadFilter();
+          filter.type = 'lowpass';
+          filter.frequency.setValueAtTime(110, this.ctx.currentTime);
+
+          this.bgOsc.connect(filter);
+          filter.connect(this.bgGain);
+          this.bgOsc.start();
+        } catch (e) {
+          console.warn('Audio error', e);
+        }
+      }
+
+      playLaser() {
+        if (!this.ctx || this.muted) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.exponentialRampToValueAtTime(140, now + 0.16);
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.16);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.17);
+      }
+
+      playMissile() {
+        if (!this.ctx || this.muted) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(140, now);
+        osc.frequency.linearRampToValueAtTime(360, now + 0.28);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.32);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.33);
+      }
+
+      playExplosion() {
+        if (!this.ctx || this.muted) return;
+        const now = this.ctx.currentTime;
+        const bufferSize = this.ctx.sampleRate * 0.38;
+        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.35));
+        }
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = buffer;
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(400, now);
+        filter.frequency.exponentialRampToValueAtTime(40, now + 0.36);
+
+        const gain = this.ctx.createGain();
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.37);
+
+        noise.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        noise.start(now);
+      }
+
+      playShieldHit() {
+        if (!this.ctx || this.muted) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(520, now);
+        osc.frequency.exponentialRampToValueAtTime(260, now + 0.2);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.21);
+      }
+
+      playShieldDown() {
+        if (!this.ctx || this.muted) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(360, now);
+        osc.frequency.exponentialRampToValueAtTime(80, now + 0.3);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.31);
+      }
+
+      playIonHit() {
+        if (!this.ctx || this.muted) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(880, now);
+        osc.frequency.exponentialRampToValueAtTime(220, now + 0.25);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.26);
+      }
+
+      playAlarm() {
+        if (!this.ctx || this.muted) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(680, now);
+        osc.frequency.setValueAtTime(880, now + 0.12);
+        gain.gain.setValueAtTime(0.14, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.24);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.25);
+      }
+
+      playJump() {
+        if (!this.ctx || this.muted) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(120, now);
+        osc.frequency.exponentialRampToValueAtTime(1100, now + 0.65);
+        gain.gain.setValueAtTime(0.28, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.7);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.71);
+      }
+
+      playClick() {
+        if (!this.ctx || this.muted) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(950, now);
+        gain.gain.setValueAtTime(0.06, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.05);
+      }
+    }
+
+    const sound = new SoundEngine();
+
+    // --------------------------------------------------------------------------
+    // 2. WEAPON CATALOG
+    // --------------------------------------------------------------------------
+    const WEAPON_TYPES = {
+      BURST_LASER_1: {
+        id: 'BURST_LASER_1',
+        name: '듀얼 레이저 I',
+        type: 'laser',
+        powerReq: 1,
+        cooldown: 9.0,
+        shots: 2,
+        damage: 1,
+        shieldPierce: 0,
+        fireChance: 0.15,
+        breachChance: 0.05,
+        cost: 25,
+        desc: '기본 2연발 레이저. 적 실드를 깎고 선체를 타격합니다.'
+      },
+      BURST_LASER_2: {
+        id: 'BURST_LASER_2',
+        name: '버스트 레이저 II',
+        type: 'laser',
+        powerReq: 2,
+        cooldown: 11.5,
+        shots: 3,
+        damage: 1,
+        shieldPierce: 0,
+        fireChance: 0.2,
+        breachChance: 0.1,
+        cost: 65,
+        desc: '3연발 레이저. 뛰어난 전력비로 실드를 빠르게 벗겨냅니다.'
+      },
+      HEAVY_LASER: {
+        id: 'HEAVY_LASER',
+        name: '헤비 레이저 I',
+        type: 'laser',
+        powerReq: 2,
+        cooldown: 12.0,
+        shots: 1,
+        damage: 2,
+        shieldPierce: 0,
+        fireChance: 0.45,
+        breachChance: 0.35,
+        cost: 50,
+        desc: '단발 2데미지. 적 선내 화재 및 선체 균열 유발 확률이 매우 높습니다.'
+      },
+      ARTEMIS_MISSILE: {
+        id: 'ARTEMIS_MISSILE',
+        name: '아르테미스 미사일',
+        type: 'missile',
+        powerReq: 1,
+        cooldown: 10.5,
+        shots: 1,
+        damage: 2,
+        shieldPierce: 99,
+        fireChance: 0.3,
+        breachChance: 0.25,
+        cost: 40,
+        desc: '방어막을 무시하고 적의 핵심 룸을 정밀 타격합니다 (미사일 1 소모).'
+      },
+      BREACH_MISSILE: {
+        id: 'BREACH_MISSILE',
+        name: '균열 파쇄 미사일',
+        type: 'missile',
+        powerReq: 3,
+        cooldown: 16.5,
+        shots: 1,
+        damage: 4,
+        shieldPierce: 99,
+        fireChance: 0.5,
+        breachChance: 1.0,
+        cost: 80,
+        desc: '방어막 무시 4데미지 및 100% 선체 균열(진공 유발)을 일으키는 결전 미사일.'
+      },
+      ION_BLAST_1: {
+        id: 'ION_BLAST_1',
+        name: '이온 블래스터 I',
+        type: 'ion',
+        powerReq: 1,
+        cooldown: 7.5,
+        shots: 1,
+        damage: 0,
+        shieldPierce: 0,
+        fireChance: 0.0,
+        breachChance: 0.0,
+        ionDamage: 1,
+        cost: 35,
+        desc: '실드 1겹을 제거하거나, 적 시스템을 5초간 마비(동력 차단)시킵니다.'
+      },
+      ION_BLAST_2: {
+        id: 'ION_BLAST_2',
+        name: '연사 이온 캐논',
+        type: 'ion',
+        powerReq: 2,
+        cooldown: 4.5,
+        shots: 1,
+        damage: 0,
+        shieldPierce: 0,
+        fireChance: 0.0,
+        breachChance: 0.0,
+        ionDamage: 1,
+        cost: 60,
+        desc: '초고속 연사로 적 실드 또는 무기실을 무력화할 수 있습니다.'
+      },
+      HALBERD_BEAM: {
+        id: 'HALBERD_BEAM',
+        name: '할버드 절단 빔',
+        type: 'beam',
+        powerReq: 3,
+        cooldown: 14.5,
+        shots: 1,
+        damage: 2,
+        shieldPierce: 0,
+        fireChance: 0.25,
+        breachChance: 0.0,
+        cost: 75,
+        desc: '적 실드가 벗겨진 순간 다수의 룸을 일도양단하는 강력한 절단 빔.'
+      }
+    };
+
+    // --------------------------------------------------------------------------
+    // 3. CREW RACES & DEFINITIONS
+    // --------------------------------------------------------------------------
+    const RACES = {
+      human: {
+        name: '인간',
+        color: '#f39c12',
+        maxHp: 100,
+        repairSpeed: 1.0,
+        combatDamage: 1.0,
+        moveSpeed: 1.0,
+        cost: 40,
+        desc: '균형 잡힌 능력치의 연방 정규군 승무원.'
+      },
+      engi: {
+        name: '엔지니어',
+        color: '#3498db',
+        maxHp: 70,
+        repairSpeed: 2.0,
+        combatDamage: 0.5,
+        moveSpeed: 1.0,
+        cost: 45,
+        desc: '나노머신 신체로 2배 빠른 수리 능력을 지녔으나 백병전은 취약합니다.'
+      },
+      mantis: {
+        name: '맨티스',
+        color: '#2ecc71',
+        maxHp: 100,
+        repairSpeed: 0.5,
+        combatDamage: 1.5,
+        moveSpeed: 1.25,
+        cost: 50,
+        desc: '사마귀형 외계 전사. 압도적인 백병전 공격력과 기동력을 지닙니다.'
+      },
+      rockman: {
+        name: '락맨',
+        color: '#e67e22',
+        maxHp: 150,
+        repairSpeed: 1.0,
+        combatDamage: 1.0,
+        moveSpeed: 0.75,
+        fireImmune: true,
+        cost: 55,
+        desc: '암석 피부로 체력이 150이며, 화재 피해에 완전 면역입니다.'
+      },
+      zoltan: {
+        name: '졸탄',
+        color: '#f1c40f',
+        maxHp: 70,
+        repairSpeed: 1.0,
+        combatDamage: 0.8,
+        moveSpeed: 1.0,
+        providesPower: true,
+        cost: 50,
+        desc: '생체 발전 생명체. 자신이 위치한 룸에 무료 녹색 전력 +1을 상시 공급합니다.'
+      }
+    };
+
+    // --------------------------------------------------------------------------
+    // 4. SHIP LAYOUTS & UNLOCKS
+    // --------------------------------------------------------------------------
+    const SHIP_CLASSES = {
+      kestrel: {
+        id: 'kestrel',
+        name: '케스트렐 순양함 (The Kestrel)',
+        desc: '연방 표준형 다목적 순양함. 균형 잡힌 초기 무장과 견고한 선체.',
+        unlocked: true,
+        maxHull: 30,
+        reactor: 8,
+        fuel: 16,
+        missiles: 8,
+        scrap: 30,
+        systems: {
+          shields: { level: 2, power: 2 },
+          engines: { level: 2, power: 2 },
+          weapons: { level: 3, power: 3 },
+          oxygen: { level: 1, power: 1 },
+          medbay: { level: 1, power: 0 },
+          piloting: { level: 1, power: 0 }
+        },
+        weapons: ['BURST_LASER_1', 'ARTEMIS_MISSILE'],
+        crew: [
+          { name: '반스 함장', race: 'human', room: 'piloting' },
+          { name: '스파크', race: 'engi', room: 'shields' },
+          { name: '크사르', race: 'mantis', room: 'weapons' }
+        ],
+        rooms: [
+          { id: 'piloting', label: '조종실', sys: 'piloting', x: 260, y: 130, w: 50, h: 60 },
+          { id: 'shields', label: '쉴드실', sys: 'shields', x: 190, y: 90, w: 60, h: 60 },
+          { id: 'weapons', label: '무기실', sys: 'weapons', x: 190, y: 170, w: 60, h: 60 },
+          { id: 'oxygen', label: '산소실', sys: 'oxygen', x: 120, y: 90, w: 60, h: 50 },
+          { id: 'medbay', label: '의료실', sys: 'medbay', x: 120, y: 180, w: 60, h: 50 },
+          { id: 'engines', label: '엔진실', sys: 'engines', x: 50, y: 125, w: 60, h: 70 }
+        ],
+        doors: [
+          { id: 'd1', r1: 'engines', r2: 'oxygen', x: 110, y: 120, vertical: true, open: false, isAir: false },
+          { id: 'd2', r1: 'engines', r2: 'medbay', x: 110, y: 180, vertical: true, open: false, isAir: false },
+          { id: 'd3', r1: 'oxygen', r2: 'shields', x: 180, y: 120, vertical: true, open: false, isAir: false },
+          { id: 'd4', r1: 'medbay', r2: 'weapons', x: 180, y: 200, vertical: true, open: false, isAir: false },
+          { id: 'd5', r1: 'shields', r2: 'piloting', x: 250, y: 140, vertical: true, open: false, isAir: false },
+          { id: 'd6', r1: 'weapons', r2: 'piloting', x: 250, y: 180, vertical: true, open: false, isAir: false },
+          { id: 'd_air1', r1: 'oxygen', r2: 'space', x: 150, y: 90, vertical: false, open: false, isAir: true },
+          { id: 'd_air2', r1: 'medbay', r2: 'space', x: 150, y: 230, vertical: false, open: false, isAir: true }
+        ]
+      },
+      torus: {
+        id: 'torus',
+        name: '엔지 보텍스 (The Torus)',
+        desc: '이온 병기 및 첨단 나노 수리 특화 함선. 엔지 승무원 2명 탑승.',
+        unlocked: false,
+        maxHull: 30,
+        reactor: 9,
+        fuel: 16,
+        missiles: 4,
+        scrap: 35,
+        systems: {
+          shields: { level: 2, power: 2 },
+          engines: { level: 2, power: 2 },
+          weapons: { level: 3, power: 3 },
+          oxygen: { level: 1, power: 1 },
+          medbay: { level: 1, power: 0 },
+          piloting: { level: 1, power: 0 }
+        },
+        weapons: ['ION_BLAST_2', 'BURST_LASER_1'],
+        crew: [
+          { name: '오메가', race: 'engi', room: 'piloting' },
+          { name: '볼트', race: 'engi', room: 'shields' },
+          { name: '테라', race: 'human', room: 'weapons' }
+        ],
+        rooms: [
+          { id: 'piloting', label: '조종실', sys: 'piloting', x: 260, y: 130, w: 50, h: 60 },
+          { id: 'shields', label: '쉴드실', sys: 'shields', x: 190, y: 90, w: 60, h: 60 },
+          { id: 'weapons', label: '무기실', sys: 'weapons', x: 190, y: 170, w: 60, h: 60 },
+          { id: 'oxygen', label: '산소실', sys: 'oxygen', x: 120, y: 90, w: 60, h: 50 },
+          { id: 'medbay', label: '의료실', sys: 'medbay', x: 120, y: 180, w: 60, h: 50 },
+          { id: 'engines', label: '엔진실', sys: 'engines', x: 50, y: 125, w: 60, h: 70 }
+        ],
+        doors: [
+          { id: 'd1', r1: 'engines', r2: 'oxygen', x: 110, y: 120, vertical: true, open: false, isAir: false },
+          { id: 'd2', r1: 'engines', r2: 'medbay', x: 110, y: 180, vertical: true, open: false, isAir: false },
+          { id: 'd3', r1: 'oxygen', r2: 'shields', x: 180, y: 120, vertical: true, open: false, isAir: false },
+          { id: 'd4', r1: 'medbay', r2: 'weapons', x: 180, y: 200, vertical: true, open: false, isAir: false },
+          { id: 'd5', r1: 'shields', r2: 'piloting', x: 250, y: 140, vertical: true, open: false, isAir: false },
+          { id: 'd6', r1: 'weapons', r2: 'piloting', x: 250, y: 180, vertical: true, open: false, isAir: false },
+          { id: 'd_air1', r1: 'oxygen', r2: 'space', x: 150, y: 90, vertical: false, open: false, isAir: true },
+          { id: 'd_air2', r1: 'medbay', r2: 'space', x: 150, y: 230, vertical: false, open: false, isAir: true }
+        ]
+      }
+    };
+
+    // Load unlocks
+    try {
+      const savedUnlocks = localStorage.getItem('void_strider_unlocks');
+      if (savedUnlocks) {
+        const u = JSON.parse(savedUnlocks);
+        if (u.torus) SHIP_CLASSES.torus.unlocked = true;
+      }
+    } catch (e) {}
+
+    // --------------------------------------------------------------------------
+    // 5. GAME STATE
+    // --------------------------------------------------------------------------
+    class GameState {
+      constructor() {
+        this.selectedShipId = 'kestrel';
+        this.paused = false;
+        this.sector = 1;
+        this.scrap = 30;
+        this.fuel = 16;
+        this.missiles = 8;
+        this.hull = 30;
+        this.maxHull = 30;
+        this.reactor = 8;
+
+        this.kills = 0;
+        this.beaconsVisited = 0;
+        this.scrapTotal = 0;
+
+        this.systems = {};
+        this.rooms = [];
+        this.doors = [];
+        this.crew = [];
+        this.boarders = []; // Enemy invaders inside player ship
+        this.weapons = [];
+        this.autofire = false;
+
+        this.enemy = null;
+        this.projectiles = [];
+        this.particles = [];
+        this.floatingTexts = [];
+
+        this.map = null;
+        this.currentBeacon = null;
+        this.rebelFleetCol = 0.5;
+
+        this.selectedCrew = null;
+        this.selectedWeaponIndex = null;
+        this.inCombat = false;
+      }
+
+      initShip(shipDef) {
+        this.hull = shipDef.maxHull;
+        this.maxHull = shipDef.maxHull;
+        this.reactor = shipDef.reactor;
+        this.fuel = shipDef.fuel;
+        this.missiles = shipDef.missiles;
+        this.scrap = shipDef.scrap;
+
+        this.systems = {
+          shields: { ...shipDef.systems.shields, maxLevel: 8, ionTimer: 0, damage: 0, bubbleCount: 0, rechargeProgress: 0 },
+          engines: { ...shipDef.systems.engines, maxLevel: 8, ionTimer: 0, damage: 0 },
+          weapons: { ...shipDef.systems.weapons, maxLevel: 8, ionTimer: 0, damage: 0 },
+          oxygen: { ...shipDef.systems.oxygen, maxLevel: 3, ionTimer: 0, damage: 0 },
+          medbay: { ...shipDef.systems.medbay, maxLevel: 3, ionTimer: 0, damage: 0 },
+          piloting: { ...shipDef.systems.piloting, maxLevel: 3, ionTimer: 0, damage: 0 }
+        };
+
+        this.rooms = shipDef.rooms.map(r => ({
+          ...r,
+          o2: 100,
+          fire: 0,
+          breach: 0
+        }));
+
+        this.doors = shipDef.doors.map(d => ({ ...d }));
+
+        this.crew = shipDef.crew.map((c, idx) => {
+          const roomObj = this.rooms.find(r => r.id === c.room);
+          const raceData = RACES[c.race];
+          return {
+            id: 'crew_' + idx,
+            name: c.name,
+            race: c.race,
+            hp: raceData.maxHp,
+            maxHp: raceData.maxHp,
+            currentRoom: c.room,
+            x: roomObj ? roomObj.x + roomObj.w / 2 : 100,
+            y: roomObj ? roomObj.y + roomObj.h / 2 : 100,
+            targetRoom: null
+          };
+        });
+
+        this.boarders = [];
+
+        this.weapons = shipDef.weapons.map(wId => {
+          const def = WEAPON_TYPES[wId];
+          return {
+            ...def,
+            charge: 0,
+            powered: true,
+            targetRoomId: null
+          };
+        });
+
+        this.updateShieldBubbles();
+      }
+
+      updateShieldBubbles() {
+        const effPower = this.getEffectiveSystemPower('shields');
+        this.systems.shields.maxBubbles = Math.floor(effPower / 2);
+        if (this.systems.shields.bubbleCount > this.systems.shields.maxBubbles) {
+          this.systems.shields.bubbleCount = this.systems.shields.maxBubbles;
+        }
+      }
+
+      getEffectiveSystemPower(sysKey) {
+        const s = this.systems[sysKey];
+        if (!s || s.ionTimer > 0) return 0;
+        let p = Math.max(0, s.power - s.damage);
+        // Zoltan crew member in room adds +1 free green power bar
+        const room = this.rooms.find(r => r.sys === sysKey);
+        if (room) {
+          const zoltans = this.crew.filter(c => c.currentRoom === room.id && c.race === 'zoltan' && c.hp > 0);
+          p = Math.min(s.level, p + zoltans.length);
+        }
+        return p;
+      }
+
+      getUsedReactorPower() {
+        let sum = 0;
+        for (const k of ['shields', 'engines', 'weapons', 'oxygen', 'medbay']) {
+          if (this.systems[k]) sum += this.systems[k].power;
+        }
+        return sum;
+      }
+
+      getAvailablePower() {
+        return Math.max(0, this.reactor - this.getUsedReactorPower());
+      }
+
+      getEvasion() {
+        const pilotRoom = this.rooms.find(r => r.sys === 'piloting');
+        const pilotSys = this.systems.piloting;
+        if (!pilotSys || pilotSys.damage >= pilotSys.level) return 0;
+
+        const pilotCrew = this.crew.find(c => c.currentRoom === pilotRoom.id && c.hp > 0);
+        // Requires pilot or upgraded autopilot
+        if (!pilotCrew && pilotSys.level < 2) return 0;
+
+        const enginePower = this.getEffectiveSystemPower('engines');
+        let baseEvasion = enginePower * 5;
+        if (pilotCrew) baseEvasion += 10;
+        const engineRoom = this.rooms.find(r => r.sys === 'engines');
+        const engineCrew = this.crew.find(c => c.currentRoom === engineRoom.id && c.hp > 0);
+        if (engineCrew) baseEvasion += 5;
+
+        return Math.min(55, baseEvasion);
+      }
+
+      // Save state to LocalStorage
+      saveToStorage() {
+        try {
+          const saveData = {
+            selectedShipId: this.selectedShipId,
+            sector: this.sector,
+            scrap: this.scrap,
+            fuel: this.fuel,
+            missiles: this.missiles,
+            hull: this.hull,
+            maxHull: this.maxHull,
+            reactor: this.reactor,
+            kills: this.kills,
+            beaconsVisited: this.beaconsVisited,
+            scrapTotal: this.scrapTotal,
+            systems: this.systems,
+            rooms: this.rooms,
+            doors: this.doors,
+            crew: this.crew,
+            weapons: this.weapons,
+            rebelFleetCol: this.rebelFleetCol,
+            currentBeaconId: this.currentBeacon ? this.currentBeacon.id : 1
+          };
+          localStorage.setItem('void_strider_active_run', JSON.stringify(saveData));
+        } catch (e) {
+          console.warn('Save failed', e);
+        }
+      }
+
+      loadFromStorage() {
+        try {
+          const raw = localStorage.getItem('void_strider_active_run');
+          if (!raw) return false;
+          const d = JSON.parse(raw);
+          this.selectedShipId = d.selectedShipId;
+          this.sector = d.sector;
+          this.scrap = d.scrap;
+          this.fuel = d.fuel;
+          this.missiles = d.missiles;
+          this.hull = d.hull;
+          this.maxHull = d.maxHull;
+          this.reactor = d.reactor;
+          this.kills = d.kills;
+          this.beaconsVisited = d.beaconsVisited;
+          this.scrapTotal = d.scrapTotal;
+          this.systems = d.systems;
+          this.rooms = d.rooms;
+          this.doors = d.doors;
+          this.crew = d.crew;
+          this.boarders = [];
+          this.weapons = d.weapons;
+          this.rebelFleetCol = d.rebelFleetCol;
+
+          this.map = new GalaxyMap(this.sector);
+          this.currentBeacon = this.map.nodes.find(n => n.id === d.currentBeaconId) || this.map.nodes[0];
+          this.inCombat = false;
+          this.enemy = null;
+          this.updateShieldBubbles();
+          return true;
+        } catch (e) {
+          console.error('Failed to load save', e);
+          return false;
+        }
+      }
+
+      clearSave() {
+        try {
+          localStorage.removeItem('void_strider_active_run');
+        } catch (e) {}
+      }
+    }
+
+    const state = new GameState();
+
+    // --------------------------------------------------------------------------
+    // 6. ENEMY SHIP GENERATOR
+    // --------------------------------------------------------------------------
+    class EnemyShip {
+      constructor(sector, isBoss = false, bossPhase = 1) {
+        this.sector = sector;
+        this.isBoss = isBoss;
+        this.bossPhase = bossPhase;
+
+        if (isBoss) {
+          this.initBoss(bossPhase);
+        } else {
+          this.initStandard(sector);
+        }
+      }
+
+      initStandard(sector) {
+        const names = [
+          '반란군 정찰정', '해적 요격기', '맨티스 강습함', '락맨 순찰선',
+          '슬러그 경순양함', '반란군 전투초계함', '용병 중순양함'
+        ];
+        this.name = names[Math.min(names.length - 1, sector - 1 + Math.floor(Math.random() * 2))];
+
+        const baseHp = 8 + sector * 2 + Math.floor(Math.random() * 3);
+        this.maxHull = baseHp;
+        this.hull = baseHp;
+
+        // Shields scale with sector
+        const shieldPower = Math.min(8, Math.max(0, Math.floor((sector + 1) / 2) * 2));
+        this.systems = {
+          shields: { level: Math.max(2, shieldPower), power: shieldPower, damage: 0, ionTimer: 0, bubbleCount: Math.floor(shieldPower / 2), maxBubbles: Math.floor(shieldPower / 2), rechargeProgress: 0 },
+          weapons: { level: 2 + Math.floor(sector / 2), power: 2 + Math.floor(sector / 2), damage: 0, ionTimer: 0 },
+          engines: { level: 1 + Math.floor(sector / 3), power: 1 + Math.floor(sector / 3), damage: 0, ionTimer: 0 },
+          piloting: { level: 1, power: 1, damage: 0, ionTimer: 0 }
+        };
+
+        // Enemy weapons
+        const wPool = ['BURST_LASER_1'];
+        if (sector >= 2) wPool.push('HEAVY_LASER');
+        if (sector >= 3) wPool.push('ARTEMIS_MISSILE');
+        if (sector >= 4) wPool.push('ION_BLAST_1');
+        if (sector >= 5) wPool.push('BURST_LASER_2');
+
+        const chosenW = [wPool[Math.floor(Math.random() * wPool.length)]];
+        if (sector >= 3) {
+          chosenW.push(wPool[Math.floor(Math.random() * wPool.length)]);
+        }
+
+        this.weapons = chosenW.map(wId => ({
+          ...WEAPON_TYPES[wId],
+          charge: Math.random() * 2.5,
+          targetRoomId: 'shields'
+        }));
+
+        this.rooms = [
+          { id: 'shields', label: '쉴드', sys: 'shields', x: 500, y: 100, w: 55, h: 55, o2: 100, fire: 0, breach: 0 },
+          { id: 'weapons', label: '무기', sys: 'weapons', x: 500, y: 170, w: 55, h: 55, o2: 100, fire: 0, breach: 0 },
+          { id: 'engines', label: '엔진', sys: 'engines', x: 575, y: 170, w: 55, h: 55, o2: 100, fire: 0, breach: 0 },
+          { id: 'piloting', label: '조종', sys: 'piloting', x: 575, y: 100, w: 55, h: 55, o2: 100, fire: 0, breach: 0 }
+        ];
+
+        this.crew = [
+          { name: '반란군 승무원', race: 'human', hp: 100, currentRoom: 'piloting' },
+          { name: '반란군 기술병', race: 'human', hp: 100, currentRoom: 'shields' }
+        ];
+
+        this.scrapReward = 16 + sector * 12 + Math.floor(Math.random() * 10);
+        this.fuelReward = Math.random() < 0.7 ? Math.floor(Math.random() * 3) + 1 : 0;
+        this.missileReward = Math.random() < 0.6 ? Math.floor(Math.random() * 2) + 1 : 0;
+
+        // Chance of boarding attack for Mantis ships or Sector 5+
+        if ((this.name.includes('맨티스') || sector >= 5) && Math.random() < 0.5) {
+          setTimeout(() => {
+            spawnEnemyBoarders(2);
+          }, 4000);
+        }
+      }
+
+      initBoss(phase) {
+        this.name = `반란군 플래그십 (REBEL FLAGSHIP - PHASE ${phase})`;
+        this.maxHull = 26;
+        this.hull = 26;
+
+        this.systems = {
+          shields: { level: 8, power: 8, damage: 0, ionTimer: 0, bubbleCount: 4, maxBubbles: 4, rechargeProgress: 0 },
+          weapons: { level: 8, power: 8, damage: 0, ionTimer: 0 },
+          engines: { level: 4, power: 4, damage: 0, ionTimer: 0 },
+          piloting: { level: 3, power: 3, damage: 0, ionTimer: 0 }
+        };
+
+        this.weapons = [
+          { ...WEAPON_TYPES.BURST_LASER_2, charge: 0, targetRoomId: 'shields' },
+          { ...WEAPON_TYPES.ARTEMIS_MISSILE, charge: 0, targetRoomId: 'weapons' },
+          { ...WEAPON_TYPES.ION_BLAST_2, charge: 0, targetRoomId: 'engines' },
+          { ...WEAPON_TYPES.HALBERD_BEAM, charge: 0, targetRoomId: 'piloting' }
+        ];
+
+        // Zoltan Super Shield in Phase 3
+        this.superShield = phase === 3 ? 12 : 0;
+        this.maxSuperShield = phase === 3 ? 12 : 0;
+
+        this.rooms = [
+          { id: 'shields', label: '대형쉴드실', sys: 'shields', x: 480, y: 130, w: 60, h: 60, o2: 100, fire: 0, breach: 0 },
+          { id: 'weapons', label: '주포관제실', sys: 'weapons', x: 555, y: 70, w: 60, h: 60, o2: 100, fire: 0, breach: 0 },
+          { id: 'missiles', label: '미사일포대', sys: 'weapons', x: 555, y: 190, w: 60, h: 60, o2: 100, fire: 0, breach: 0 },
+          { id: 'engines', label: '중력엔진실', sys: 'engines', x: 630, y: 130, w: 60, h: 60, o2: 100, fire: 0, breach: 0 },
+          { id: 'piloting', label: '사령조종탑', sys: 'piloting', x: 405, y: 130, w: 60, h: 60, o2: 100, fire: 0, breach: 0 }
+        ];
+
+        this.crew = [
+          { name: '반란군 사령관', race: 'human', hp: 120, currentRoom: 'piloting' },
+          { name: '호위대장', race: 'mantis', hp: 120, currentRoom: 'shields' },
+          { name: '수석엔지니어', race: 'engi', hp: 90, currentRoom: 'weapons' }
+        ];
+
+        this.scrapReward = 90;
+        this.fuelReward = 4;
+        this.missileReward = 5;
+
+        // Phase 2 & 3: Boarding Assault
+        if (phase >= 2) {
+          setTimeout(() => {
+            spawnEnemyBoarders(phase === 2 ? 2 : 3);
+          }, 3500);
+        }
+      }
+
+      getEffectivePower(sysKey) {
+        const s = this.systems[sysKey];
+        if (!s || s.ionTimer > 0) return 0;
+        return Math.max(0, s.power - s.damage);
+      }
+
+      getEvasion() {
+        if (this.getEffectivePower('piloting') === 0) return 0;
+        return 10 + this.getEffectivePower('engines') * 4;
+      }
+    }
+
+    function spawnEnemyBoarders(count) {
+      if (!state.inCombat || state.rooms.length === 0) return;
+      sound.playAlarm();
+      addFloatingText(180, 150, '⚠️ 적 강습 분대 선내 침투!', '#ff3355');
+
+      for (let i = 0; i < count; i++) {
+        const randomRoom = state.rooms[Math.floor(Math.random() * state.rooms.length)];
+        state.boarders.push({
+          id: 'boarder_' + Date.now() + '_' + i,
+          name: '침투 적병',
+          race: 'mantis',
+          hp: 100,
+          maxHp: 100,
+          currentRoom: randomRoom.id,
+          x: randomRoom.x + 15 + i * 20,
+          y: randomRoom.y + 25
+        });
+      }
+    }
+
+    // --------------------------------------------------------------------------
+    // 7. GALAXY MAP GENERATOR (Sectors 1-8)
+    // --------------------------------------------------------------------------
+    class GalaxyMap {
+      constructor(sector) {
+        this.sector = sector;
+        this.columns = 7;
+        this.nodes = [];
+        this.generateNodes();
+      }
+
+      generateNodes() {
+        const types = ['combat', 'combat', 'distress', 'store', 'event', 'nebula'];
+        let idCounter = 1;
+
+        // Col 0: Start Node
+        this.nodes.push({
+          id: idCounter++,
+          col: 0,
+          yRatio: 0.5,
+          type: 'start',
+          label: '도착 비콘',
+          visited: true,
+          connections: []
+        });
+
+        // Cols 1 to 5: Procedural Beacons
+        for (let col = 1; col <= 5; col++) {
+          const count = 3 + Math.floor(Math.random() * 2);
+          for (let i = 0; i < count; i++) {
+            let t = types[Math.floor(Math.random() * types.length)];
+            if (col === 3 && i === 0) t = 'store';
+            this.nodes.push({
+              id: idCounter++,
+              col: col,
+              yRatio: (i + 1) / (count + 1) + (Math.random() * 0.1 - 0.05),
+              type: t,
+              label: this.getNodeLabel(t),
+              visited: false,
+              connections: []
+            });
+          }
+        }
+
+        // Col 6: Exit / Boss
+        this.nodes.push({
+          id: idCounter++,
+          col: 6,
+          yRatio: 0.5,
+          type: this.sector === 8 ? 'boss' : 'exit',
+          label: this.sector === 8 ? '반란군 총기함' : '다음 섹터 워프',
+          visited: false,
+          connections: []
+        });
+
+        // Interconnect adjacent columns
+        for (let col = 0; col < 6; col++) {
+          const fromNodes = this.nodes.filter(n => n.col === col);
+          const toNodes = this.nodes.filter(n => n.col === col + 1);
+
+          fromNodes.forEach(fn => {
+            const sorted = [...toNodes].sort((a, b) => Math.abs(a.yRatio - fn.yRatio) - Math.abs(b.yRatio - fn.yRatio));
+            fn.connections.push(sorted[0].id);
+            if (sorted.length > 1 && Math.random() < 0.6) {
+              fn.connections.push(sorted[1].id);
+            }
+          });
+        }
+      }
+
+      getNodeLabel(t) {
+        switch (t) {
+          case 'combat': return '적 함선 조우';
+          case 'distress': return '조난 신호 발신지';
+          case 'store': return '연방 보급 상점';
+          case 'event': return '미확인 성간 비콘';
+          case 'nebula': return '성운 은신 구역';
+          default: return '비콘';
+        }
+      }
+    }
+
+    // --------------------------------------------------------------------------
+    // 8. STORY EVENT SCRIPTS
+    // --------------------------------------------------------------------------
+    const STORY_EVENTS = [
+      {
+        id: 'distress_freighter',
+        title: '조난 신호: 해적의 화물선 습격',
+        text: '민간 화물선 한 척이 무장 해적 요격기의 맹렬한 공격을 받고 있습니다! 긴급 구조 통신이 수신됩니다.',
+        choices: [
+          {
+            text: '화물선을 돕기 위해 해적선과 교전을 개시한다.',
+            action: (gs) => {
+              gs.inCombat = true;
+              gs.enemy = new EnemyShip(gs.sector);
+              closeModal('modal-event');
+            }
+          },
+          {
+            text: '위험을 피하고 조용히 우회한다.',
+            action: (gs) => {
+              closeModal('modal-event');
+            }
+          }
+        ]
+      },
+      {
+        id: 'abandoned_station',
+        title: '버려진 과학 연구 정거장',
+        text: '외벽이 심하게 파손된 연방의 구형 연구 기지가 중력에 이끌려 서서히 행성으로 추락하고 있습니다.',
+        choices: [
+          {
+            text: '승무원을 파견해 유용한 기술 자료와 자재를 인양한다.',
+            action: (gs) => {
+              if (Math.random() < 0.75) {
+                const gain = 22 + gs.sector * 8;
+                gs.scrap += gain;
+                gs.scrapTotal += gain;
+                gs.missiles += 2;
+                alertModal('인양 성공!', `연구소 데이터 코어에서 ${gain} 스크랩과 미사일 2발을 회수했습니다.`);
+              } else {
+                gs.hull = Math.max(1, gs.hull - 3);
+                alertModal('폭발 발생!', '정거장 내부 반응로가 폭발하며 선체에 3의 피해를 입었습니다.');
+              }
+            }
+          },
+          {
+            text: '위험성이 너무 높으므로 거리를 둔다.',
+            action: () => closeModal('modal-event')
+          }
+        ]
+      },
+      {
+        id: 'engi_refugees',
+        title: '방황하는 엔지 피난선',
+        text: '반란군의 폭격을 피해 도주 중인 작은 엔지 선단이 통신을 걸어왔습니다:\n"연방의 순양함... 연료가 고갈되었습니다. 지원을 요청합니다."',
+        choices: [
+          {
+            text: '연료 2통을 무상으로 지원한다 (연료 -2).',
+            action: (gs) => {
+              if (gs.fuel >= 2) {
+                gs.fuel -= 2;
+                if (Math.random() < 0.5 && gs.crew.length < 6) {
+                  const newCrew = {
+                    id: 'crew_' + Date.now(),
+                    name: '오토마타',
+                    race: 'engi',
+                    hp: 70,
+                    maxHp: 70,
+                    currentRoom: 'shields',
+                    x: 200,
+                    y: 120,
+                    targetRoom: null
+                  };
+                  gs.crew.push(newCrew);
+                  alertModal('새 승무원 합류!', '감명받은 엔지 기술자 한 명이 아군 함선에 승선하기를 희망했습니다!');
+                } else {
+                  const s = 35 + gs.sector * 10;
+                  gs.scrap += s;
+                  alertModal('감사의 보답', `엔지들이 보답으로 희귀 금속 합금 (${s} 스크랩)을 제공했습니다.`);
+                }
+              } else {
+                alertModal('연료 부족', '지원할 수 있는 충분한 연료가 없습니다.');
+              }
+            }
+          },
+          {
+            text: '우리 함선도 여유가 없다며 거절한다.',
+            action: () => closeModal('modal-event')
+          }
+        ]
+      },
+      {
+        id: 'slaver_ship',
+        title: '노예 상인의 제안',
+        text: '무장한 불법 노예 상선이 접근해 옵니다: "연방의 순양함이로군. 훌륭한 외계 승무원이 있는데, 스크랩과 교환하지 않겠나?"',
+        choices: [
+          {
+            text: '노예들을 해방시키기 위해 노예선을 공격한다!',
+            action: (gs) => {
+              gs.inCombat = true;
+              gs.enemy = new EnemyShip(gs.sector);
+              closeModal('modal-event');
+            }
+          },
+          {
+            text: '불법 거래를 무시하고 떠난다.',
+            action: () => closeModal('modal-event')
+          }
+        ]
+      }
+    ];
+
+    function alertModal(title, text) {
+      document.getElementById('event-title').innerHTML = `<span>📢</span> ${title}`;
+      document.getElementById('event-text').textContent = text;
+      const ch = document.getElementById('event-choices');
+      ch.innerHTML = '';
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn';
+      btn.textContent = '확인';
+      btn.onclick = () => closeModal('modal-event');
+      ch.appendChild(btn);
+      openModal('modal-event');
+    }
+
+    // --------------------------------------------------------------------------
+    // 9. RENDER & CANVAS ENGINE
+    // --------------------------------------------------------------------------
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+
+    // Starfield
+    const stars = [];
+    for (let i = 0; i < 140; i++) {
+      stars.push({
+        x: Math.random() * 2000,
+        y: Math.random() * 1200,
+        size: Math.random() * 2.2 + 0.5,
+        speed: Math.random() * 0.45 + 0.1,
+        color: Math.random() < 0.2 ? '#00e5ff' : Math.random() < 0.1 ? '#ff7675' : '#ffffff'
+      });
+    }
+
+    function resizeCanvas() {
+      const rect = document.getElementById('workspace').getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    // --------------------------------------------------------------------------
+    // 10. COMBAT & SIMULATION LOOP
+    // --------------------------------------------------------------------------
+    let lastTime = performance.now();
+
+    function gameLoop(now) {
+      const dt = Math.min(0.1, (now - lastTime) / 1000);
+      lastTime = now;
+
+      if (!state.paused) {
+        updateSimulation(dt);
+      }
+
+      render();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function updateSimulation(dt) {
+      // 1. Oxygen & Fire / Breach simulation
+      state.rooms.forEach(room => {
+        const o2SysPower = state.getEffectiveSystemPower('oxygen');
+        const isVented = state.doors.some(d => d.open && d.isAir && (d.r1 === room.id || d.r2 === room.id));
+
+        if (isVented || room.breach > 0) {
+          room.o2 = Math.max(0, room.o2 - dt * (isVented ? 40 : 25));
+        } else if (o2SysPower > 0) {
+          room.o2 = Math.min(100, room.o2 + dt * 6.5 * o2SysPower);
+        } else {
+          room.o2 = Math.max(0, room.o2 - dt * 1.5);
+        }
+
+        // Fire mechanics
+        if (room.fire > 0) {
+          if (room.o2 <= 5) {
+            room.fire = Math.max(0, room.fire - dt * 3.0); // Extinguished by vacuum
+          } else {
+            room.o2 = Math.max(0, room.o2 - dt * 4.5);
+            if (room.sys && state.systems[room.sys]) {
+              const sys = state.systems[room.sys];
+              sys.damage = Math.min(sys.level, sys.damage + dt * 0.12);
+            }
+          }
+        }
+      });
+
+      // 2. Friendly Crew Simulation
+      const medbayPower = state.getEffectiveSystemPower('medbay');
+      state.crew.forEach(c => {
+        if (c.hp <= 0) return;
+
+        const curRoom = state.rooms.find(r => r.id === c.currentRoom);
+        if (curRoom) {
+          // Suffocation
+          if (curRoom.o2 < 15) {
+            c.hp = Math.max(0, c.hp - dt * 12);
+            if (c.hp <= 0) {
+              addFloatingText(c.x, c.y, `${c.name} 질식 사망!`, '#ff3355');
+            }
+          }
+          // Fire damage
+          if (curRoom.fire > 0 && !RACES[c.race].fireImmune) {
+            c.hp = Math.max(0, c.hp - dt * 9);
+          }
+          // Medbay healing
+          if (curRoom.sys === 'medbay' && medbayPower > 0) {
+            c.hp = Math.min(c.maxHp, c.hp + dt * 16 * medbayPower);
+          }
+          // Auto firefighting
+          if (curRoom.fire > 0) {
+            curRoom.fire = Math.max(0, curRoom.fire - dt * 0.9 * RACES[c.race].repairSpeed);
+          }
+          // Auto repair
+          if (curRoom.sys && state.systems[curRoom.sys] && state.systems[curRoom.sys].damage > 0 && curRoom.fire === 0) {
+            const sys = state.systems[curRoom.sys];
+            sys.damage = Math.max(0, sys.damage - dt * 0.35 * RACES[c.race].repairSpeed);
+          }
+        }
+
+        // Movement towards target room
+        if (c.targetRoom) {
+          const tRoom = state.rooms.find(r => r.id === c.targetRoom);
+          if (tRoom) {
+            const targetX = tRoom.x + tRoom.w / 2;
+            const targetY = tRoom.y + tRoom.h / 2;
+            const dx = targetX - c.x;
+            const dy = targetY - c.y;
+            const dist = Math.hypot(dx, dy);
+            const speed = 75 * RACES[c.race].moveSpeed;
+
+            if (dist < 4) {
+              c.x = targetX;
+              c.y = targetY;
+              c.currentRoom = c.targetRoom;
+              c.targetRoom = null;
+            } else {
+              c.x += (dx / dist) * speed * dt;
+              c.y += (dy / dist) * speed * dt;
+            }
+          }
+        }
+      });
+
+      // 3. Enemy Boarders Simulation (선내 침투 적 & 진공 질식)
+      for (let i = state.boarders.length - 1; i >= 0; i--) {
+        const b = state.boarders[i];
+        const bRoom = state.rooms.find(r => r.id === b.currentRoom);
+
+        if (bRoom) {
+          // Vacuum suffocation of boarders! (Core requested feature)
+          if (bRoom.o2 < 15) {
+            b.hp = Math.max(0, b.hp - dt * 25);
+            addFloatingText(b.x, b.y - 10, '진공 질식 중!', '#48dbfb');
+          }
+
+          // Combat with friendly crew in the same room
+          const defenders = state.crew.filter(c => c.currentRoom === b.currentRoom && c.hp > 0);
+          if (defenders.length > 0) {
+            const targetDefender = defenders[0];
+            targetDefender.hp = Math.max(0, targetDefender.hp - dt * 14);
+            b.hp = Math.max(0, b.hp - dt * 14 * RACES[targetDefender.race].combatDamage);
+            spawnSparks(b.x, b.y, '#ffaa00', 1);
+          } else {
+            // Damage room system if no defenders
+            if (bRoom.sys && state.systems[bRoom.sys]) {
+              const sys = state.systems[bRoom.sys];
+              sys.damage = Math.min(sys.level, sys.damage + dt * 0.25);
+            }
+          }
+        }
+
+        if (b.hp <= 0) {
+          addFloatingText(b.x, b.y, '침투 적 격퇴!', '#00ff88');
+          state.boarders.splice(i, 1);
+        }
+      }
+
+      // 4. Shield recharge
+      const shieldPower = state.getEffectiveSystemPower('shields');
+      const sh = state.systems.shields;
+      if (sh.bubbleCount < sh.maxBubbles && shieldPower > 0) {
+        sh.rechargeProgress += dt * (0.35 + shieldPower * 0.05);
+        if (sh.rechargeProgress >= 1.0) {
+          sh.bubbleCount++;
+          sh.rechargeProgress = 0;
+          sound.playShieldHit();
+        }
+      }
+
+      // 5. Player Weapons Charging
+      const wpnPower = state.getEffectiveSystemPower('weapons');
+      let allocatedWpnPower = 0;
+
+      state.weapons.forEach((w) => {
+        if (allocatedWpnPower + w.powerReq <= wpnPower) {
+          w.powered = true;
+          allocatedWpnPower += w.powerReq;
+
+          // Charge weapon
+          if (w.charge < w.cooldown) {
+            const wRoom = state.rooms.find(r => r.sys === 'weapons');
+            const manningCrew = state.crew.find(c => c.currentRoom === wRoom.id && c.hp > 0);
+            const rate = manningCrew ? 1.15 : 1.0;
+            w.charge = Math.min(w.cooldown, w.charge + dt * rate);
+          }
+
+          // Auto-fire check
+          if (state.autofire && w.charge >= w.cooldown && state.enemy && w.targetRoomId) {
+            firePlayerWeapon(w);
+          }
+        } else {
+          w.powered = false;
+          w.charge = Math.max(0, w.charge - dt * 2);
+        }
+      });
+
+      // 6. Enemy AI Simulation
+      if (state.enemy) {
+        updateEnemyAI(dt);
+      }
+
+      // 7. Projectiles
+      updateProjectiles(dt);
+
+      // 8. Particles
+      updateParticles(dt);
+    }
+
+    function updateEnemyAI(dt) {
+      const e = state.enemy;
+
+      // Enemy shield recharge
+      const eSh = e.systems.shields;
+      if (eSh.bubbleCount < eSh.maxBubbles && e.getEffectivePower('shields') > 0) {
+        eSh.rechargeProgress += dt * 0.35;
+        if (eSh.rechargeProgress >= 1.0) {
+          eSh.bubbleCount++;
+          eSh.rechargeProgress = 0;
+        }
+      }
+
+      // Enemy weapons
+      const eWpnPower = e.getEffectivePower('weapons');
+      let powerLeft = eWpnPower;
+
+      e.weapons.forEach(w => {
+        if (powerLeft >= w.powerReq) {
+          powerLeft -= w.powerReq;
+          w.charge += dt;
+          if (w.charge >= w.cooldown) {
+            w.charge = 0;
+            fireEnemyWeapon(w);
+          }
+        }
+      });
+    }
+
+    function firePlayerWeapon(w) {
+      if (!state.enemy || !w.targetRoomId) return;
+      if (w.type === 'missile') {
+        if (state.missiles <= 0) {
+          addFloatingText(300, 200, '미사일 탄약 부족!', '#ffaa00');
+          return;
+        }
+        state.missiles--;
+      }
+
+      w.charge = 0;
+      const targetRoom = state.enemy.rooms.find(r => r.id === w.targetRoomId) || state.enemy.rooms[0];
+
+      for (let i = 0; i < w.shots; i++) {
+        setTimeout(() => {
+          if (!state.enemy) return;
+          state.projectiles.push({
+            fromPlayer: true,
+            type: w.type,
+            x: 320,
+            y: 130 + (Math.random() * 40 - 20),
+            targetX: targetRoom.x + targetRoom.w / 2,
+            targetY: targetRoom.y + targetRoom.h / 2,
+            targetRoomId: targetRoom.id,
+            damage: w.damage,
+            shieldPierce: w.shieldPierce,
+            ionDamage: w.ionDamage,
+            fireChance: w.fireChance,
+            breachChance: w.breachChance,
+            speed: w.type === 'missile' ? 380 : 600
+          });
+
+          if (w.type === 'laser') sound.playLaser();
+          else if (w.type === 'missile') sound.playMissile();
+          else if (w.type === 'ion') sound.playLaser();
+          else if (w.type === 'beam') sound.playLaser();
+        }, i * 220);
+      }
+    }
+
+    function fireEnemyWeapon(w) {
+      const targetRoom = state.rooms[Math.floor(Math.random() * state.rooms.length)];
+
+      for (let i = 0; i < w.shots; i++) {
+        setTimeout(() => {
+          if (!state.enemy) return;
+          state.projectiles.push({
+            fromPlayer: false,
+            type: w.type,
+            x: 500,
+            y: 130 + (Math.random() * 40 - 20),
+            targetX: targetRoom.x + targetRoom.w / 2,
+            targetY: targetRoom.y + targetRoom.h / 2,
+            targetRoomId: targetRoom.id,
+            damage: w.damage,
+            shieldPierce: w.shieldPierce,
+            ionDamage: w.ionDamage,
+            fireChance: w.fireChance,
+            breachChance: w.breachChance,
+            speed: w.type === 'missile' ? 380 : 600
+          });
+
+          if (w.type === 'laser') sound.playLaser();
+          else if (w.type === 'missile') sound.playMissile();
+          else if (w.type === 'ion') sound.playLaser();
+          else if (w.type === 'beam') sound.playLaser();
+        }, i * 220);
+      }
+    }
+
+    function updateProjectiles(dt) {
+      for (let i = state.projectiles.length - 1; i >= 0; i--) {
+        const p = state.projectiles[i];
+        const dx = p.targetX - p.x;
+        const dy = p.targetY - p.y;
+        const dist = Math.hypot(dx, dy);
+
+        if (dist < 15) {
+          handleProjectileImpact(p);
+          state.projectiles.splice(i, 1);
+        } else {
+          p.x += (dx / dist) * p.speed * dt;
+          p.y += (dy / dist) * p.speed * dt;
+        }
+      }
+    }
+
+    function handleProjectileImpact(p) {
+      if (p.fromPlayer) {
+        // Impact on Enemy Ship
+        const e = state.enemy;
+        if (!e) return;
+
+        if (Math.random() * 100 < e.getEvasion() && p.shieldPierce < 90) {
+          addFloatingText(p.targetX, p.targetY, 'MISS!', '#3498db');
+          return;
+        }
+
+        // Super shield (Boss phase 3)
+        if (e.superShield > 0) {
+          e.superShield = Math.max(0, e.superShield - 1);
+          sound.playShieldHit();
+          spawnSparks(p.targetX, p.targetY, '#2ecc71', 8);
+          addFloatingText(p.targetX, p.targetY, 'SUPER SHIELD -1', '#2ecc71');
+          return;
+        }
+
+        // Normal Shields check
+        if (p.shieldPierce < 90 && e.systems.shields.bubbleCount > 0) {
+          e.systems.shields.bubbleCount--;
+          sound.playShieldHit();
+          spawnSparks(p.targetX, p.targetY, '#00e5ff', 8);
+          addFloatingText(p.targetX, p.targetY, 'SHIELD HIT', '#00e5ff');
+          if (e.systems.shields.bubbleCount === 0) sound.playShieldDown();
+          return;
+        }
+
+        // Direct Room Hit!
+        sound.playExplosion();
+        spawnSparks(p.targetX, p.targetY, '#ff7675', 14);
+
+        if (p.damage > 0) {
+          e.hull = Math.max(0, e.hull - p.damage);
+          addFloatingText(p.targetX, p.targetY, `-${p.damage} HULL`, '#ff3355');
+        }
+
+        // System damage
+        const r = e.rooms.find(room => room.id === p.targetRoomId);
+        if (r && r.sys && e.systems[r.sys]) {
+          const sys = e.systems[r.sys];
+          sys.damage = Math.min(sys.level, sys.damage + (p.damage || 1));
+          addFloatingText(p.targetX, p.targetY, `SYSTEM DAMAGED!`, '#ffaa00');
+        }
+
+        if (e.hull <= 0) {
+          handleEnemyDefeated();
+        }
+      } else {
+        // Impact on Player Ship
+        const evasion = state.getEvasion();
+        if (Math.random() * 100 < evasion && p.shieldPierce < 90) {
+          addFloatingText(p.targetX, p.targetY, 'EVADED!', '#3498db');
+          return;
+        }
+
+        const sh = state.systems.shields;
+        if (p.shieldPierce < 90 && sh.bubbleCount > 0) {
+          sh.bubbleCount--;
+          sound.playShieldHit();
+          spawnSparks(p.targetX, p.targetY, '#00e5ff', 8);
+          addFloatingText(p.targetX, p.targetY, '방어막 흡수', '#00e5ff');
+          if (sh.bubbleCount === 0) sound.playShieldDown();
+          return;
+        }
+
+        sound.playExplosion();
+        spawnSparks(p.targetX, p.targetY, '#ff3355', 16);
+
+        if (p.damage > 0) {
+          state.hull = Math.max(0, state.hull - p.damage);
+          addFloatingText(p.targetX, p.targetY, `-${p.damage} 선체 손상`, '#ff3355');
+          sound.playAlarm();
+        }
+
+        const room = state.rooms.find(r => r.id === p.targetRoomId);
+        if (room) {
+          if (room.sys && state.systems[room.sys]) {
+            const sys = state.systems[room.sys];
+            sys.damage = Math.min(sys.level, sys.damage + (p.damage || 1));
+          }
+          if (Math.random() < p.fireChance) {
+            room.fire = Math.min(3, room.fire + 1);
+            addFloatingText(p.targetX, p.targetY, '화재 발생!', '#ff6b6b');
+          }
+          if (Math.random() < p.breachChance) {
+            room.breach = 1;
+            addFloatingText(p.targetX, p.targetY, '선체 균열(진공)!', '#48dbfb');
+          }
+        }
+
+        if (state.hull <= 0) {
+          triggerGameOver(false);
+        }
+      }
+    }
+
+    function handleEnemyDefeated() {
+      const e = state.enemy;
+      sound.playExplosion();
+
+      state.kills++;
+      state.scrap += e.scrapReward;
+      state.scrapTotal += e.scrapReward;
+      state.fuel += e.fuelReward;
+      state.missiles += e.missileReward;
+
+      if (e.isBoss) {
+        if (e.bossPhase < 3) {
+          alertModal(`플래그십 페이즈 ${e.bossPhase} 격퇴!`, '반란군 기함이 후퇴하며 다음 방어 프로토콜을 가동합니다!');
+          state.enemy = new EnemyShip(8, true, e.bossPhase + 1);
+          state.saveToStorage();
+          return;
+        } else {
+          triggerGameOver(true);
+          return;
+        }
+      }
+
+      alertModal('전투 승리!', `적 함선을 완파했습니다!\n획득: +${e.scrapReward} 스크랩, +${e.fuelReward} 연료, +${e.missileReward} 미사일`);
+      state.enemy = null;
+      state.inCombat = false;
+      state.saveToStorage();
+    }
+
+    function triggerGameOver(victory) {
+      state.paused = true;
+      const title = document.getElementById('gameover-title');
+      const sub = document.getElementById('gameover-subtitle');
+
+      if (victory) {
+        title.innerHTML = '🏆 연방의 구원자 (VICTORY)';
+        title.style.color = '#00ff88';
+        sub.textContent = '반란군 총기함을 완파하고 기밀 데이터를 사령부에 무사히 전달하여 연방을 위기에서 구원했습니다!';
+        SHIP_CLASSES.torus.unlocked = true;
+        try {
+          localStorage.setItem('void_strider_unlocks', JSON.stringify({ torus: true }));
+        } catch (e) {}
+      } else {
+        title.innerHTML = '💀 함선 완파 (GAME OVER)';
+        title.style.color = '#ff3355';
+        sub.textContent = '선체 장갑이 모두 붕괴되어 우주의 파편으로 사라졌습니다...';
+      }
+
+      document.getElementById('stat-sector').textContent = state.sector;
+      document.getElementById('stat-kills').textContent = state.kills;
+      document.getElementById('stat-scrap').textContent = state.scrapTotal;
+      document.getElementById('stat-beacons').textContent = state.beaconsVisited;
+
+      state.clearSave();
+      openModal('modal-gameover');
+    }
+
+    // --------------------------------------------------------------------------
+    // 11. PARTICLES & FLOATING TEXTS
+    // --------------------------------------------------------------------------
+    function spawnSparks(x, y, color, count) {
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 120 + 40;
+        state.particles.push({
+          x: x,
+          y: y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: 0.4 + Math.random() * 0.3,
+          maxLife: 0.7,
+          color: color,
+          size: Math.random() * 3 + 1
+        });
+      }
+    }
+
+    function addFloatingText(x, y, text, color) {
+      state.floatingTexts.push({
+        x: x,
+        y: y,
+        text: text,
+        color: color,
+        life: 1.2,
+        vy: -35
+      });
+    }
+
+    function updateParticles(dt) {
+      for (let i = state.particles.length - 1; i >= 0; i--) {
+        const p = state.particles[i];
+        p.life -= dt;
+        if (p.life <= 0) {
+          state.particles.splice(i, 1);
+        } else {
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
+        }
+      }
+
+      for (let i = state.floatingTexts.length - 1; i >= 0; i--) {
+        const t = state.floatingTexts[i];
+        t.life -= dt;
+        if (t.life <= 0) {
+          state.floatingTexts.splice(i, 1);
+        } else {
+          t.y += t.vy * dt;
+        }
+      }
+    }
+
+    // --------------------------------------------------------------------------
+    // 12. CANVAS RENDERING
+    // --------------------------------------------------------------------------
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Starfield
+      renderStars();
+
+      // Ships Layout
+      renderPlayerShip();
+
+      if (state.enemy) {
+        renderEnemyShip();
+      }
+
+      // Projectiles & FX
+      renderProjectiles();
+      renderParticles();
+      renderFloatingTexts();
+
+      // Update HTML HUD Elements
+      updateHUD();
+    }
+
+    function renderStars() {
+      ctx.save();
+      for (let s of stars) {
+        s.x -= s.speed;
+        if (s.x < 0) s.x = canvas.width;
+        ctx.fillStyle = s.color;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function renderPlayerShip() {
+      ctx.save();
+
+      // Thruster Flame effect behind engines
+      const engRoom = state.rooms.find(r => r.sys === 'engines');
+      if (engRoom) {
+        ctx.save();
+        const fLen = 20 + Math.random() * 15;
+        const grad = ctx.createLinearGradient(engRoom.x - fLen, engRoom.y + engRoom.h / 2, engRoom.x, engRoom.y + engRoom.h / 2);
+        grad.addColorStop(0, 'rgba(0, 229, 255, 0)');
+        grad.addColorStop(0.7, 'rgba(0, 229, 255, 0.7)');
+        grad.addColorStop(1, '#ffffff');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.moveTo(engRoom.x, engRoom.y + 15);
+        ctx.lineTo(engRoom.x - fLen, engRoom.y + engRoom.h / 2);
+        ctx.lineTo(engRoom.x, engRoom.y + engRoom.h - 15);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // Ship Outer Hull silhouette
+      ctx.fillStyle = '#101d2d';
+      ctx.strokeStyle = '#1d3e61';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.roundRect(35, 75, 290, 185, 16);
+      ctx.fill();
+      ctx.stroke();
+
+      // Shield Bubble
+      const sh = state.systems.shields;
+      if (sh.bubbleCount > 0) {
+        ctx.save();
+        ctx.strokeStyle = `rgba(0, 191, 255, ${0.4 + sh.bubbleCount * 0.15})`;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.ellipse(180, 165, 165, 110, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Render Rooms
+      state.rooms.forEach(r => {
+        const o2Ratio = r.o2 / 100;
+        // Room background (cyan when breathable, reddish vacuum when low O2)
+        ctx.fillStyle = o2Ratio < 0.2 ? 'rgba(60, 10, 10, 0.75)' : `rgba(16, 31, 48, ${0.4 + o2Ratio * 0.4})`;
+        ctx.fillRect(r.x, r.y, r.w, r.h);
+
+        // Room border
+        ctx.strokeStyle = '#274b73';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(r.x, r.y, r.w, r.h);
+
+        // System icon & health
+        if (r.sys && state.systems[r.sys]) {
+          const sys = state.systems[r.sys];
+          ctx.fillStyle = sys.damage >= sys.level ? '#ff3355' : sys.damage > 0 ? '#f39c12' : '#00e5ff';
+          ctx.font = '10px monospace';
+          ctx.fillText(`${r.label}`, r.x + 4, r.y + 12);
+
+          const maxL = sys.level;
+          const curDmg = Math.floor(sys.damage);
+          for (let b = 0; b < maxL; b++) {
+            ctx.fillStyle = b >= maxL - curDmg ? '#ff3355' : '#00ff88';
+            ctx.fillRect(r.x + 4 + b * 6, r.y + r.h - 8, 4, 4);
+          }
+        }
+
+        // Fire overlay
+        if (r.fire > 0) {
+          ctx.fillStyle = 'rgba(255, 68, 0, 0.45)';
+          ctx.fillRect(r.x, r.y, r.w, r.h);
+          ctx.fillStyle = '#ffeedd';
+          ctx.font = '14px sans-serif';
+          ctx.fillText('🔥', r.x + r.w / 2 - 7, r.y + r.h / 2 + 5);
+        }
+
+        // Breach overlay
+        if (r.breach > 0) {
+          ctx.strokeStyle = '#00ffff';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(r.x + 10, r.y + 10);
+          ctx.lineTo(r.x + r.w - 10, r.y + r.h - 10);
+          ctx.stroke();
+        }
+      });
+
+      // Render Doors
+      state.doors.forEach(d => {
+        ctx.fillStyle = d.open ? '#2ecc71' : d.isAir ? '#ff3355' : '#bdc3c7';
+        if (d.vertical) {
+          ctx.fillRect(d.x - 2, d.y - 8, 4, 16);
+        } else {
+          ctx.fillRect(d.x - 8, d.y - 2, 16, 4);
+        }
+      });
+
+      // Render Friendly Crew
+      state.crew.forEach(c => {
+        if (c.hp <= 0) return;
+        const raceInfo = RACES[c.race];
+
+        if (state.selectedCrew === c) {
+          ctx.strokeStyle = '#ffaa00';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(c.x, c.y, 11, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        ctx.fillStyle = raceInfo.color;
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        // HP bar above head
+        const hpRatio = c.hp / c.maxHp;
+        ctx.fillStyle = '#060c14';
+        ctx.fillRect(c.x - 8, c.y - 14, 16, 3);
+        ctx.fillStyle = hpRatio > 0.5 ? '#00ff88' : hpRatio > 0.25 ? '#f39c12' : '#ff3355';
+        ctx.fillRect(c.x - 8, c.y - 14, 16 * hpRatio, 3);
+      });
+
+      // Render Enemy Boarders (선내 침투 적)
+      state.boarders.forEach(b => {
+        ctx.fillStyle = '#e74c3c';
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = '#ff0000';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, 9, 0, Math.PI * 2);
+        ctx.stroke();
+
+        const hpRatio = b.hp / b.maxHp;
+        ctx.fillStyle = '#060c14';
+        ctx.fillRect(b.x - 8, b.y - 14, 16, 3);
+        ctx.fillStyle = '#e74c3c';
+        ctx.fillRect(b.x - 8, b.y - 14, 16 * hpRatio, 3);
+      });
+
+      ctx.restore();
+    }
+
+    function renderEnemyShip() {
+      const e = state.enemy;
+      if (!e) return;
+
+      ctx.save();
+
+      // Enemy Hull
+      ctx.fillStyle = '#221118';
+      ctx.strokeStyle = '#611d29';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.roundRect(470, 65, 230, 185, 16);
+      ctx.fill();
+      ctx.stroke();
+
+      // Super Shield or Normal Shield
+      if (e.superShield > 0) {
+        ctx.strokeStyle = 'rgba(46, 204, 113, 0.85)';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.ellipse(580, 155, 135, 105, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      } else if (e.systems.shields.bubbleCount > 0) {
+        ctx.strokeStyle = `rgba(0, 191, 255, ${0.4 + e.systems.shields.bubbleCount * 0.15})`;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.ellipse(580, 155, 130, 100, 0, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      // Enemy Rooms
+      e.rooms.forEach(r => {
+        ctx.fillStyle = '#180a10';
+        ctx.fillRect(r.x, r.y, r.w, r.h);
+
+        ctx.strokeStyle = '#4d1922';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(r.x, r.y, r.w, r.h);
+
+        ctx.fillStyle = '#ff7675';
+        ctx.font = '10px monospace';
+        ctx.fillText(r.label, r.x + 4, r.y + 12);
+
+        if (r.sys && e.systems[r.sys]) {
+          const sys = e.systems[r.sys];
+          for (let b = 0; b < sys.level; b++) {
+            ctx.fillStyle = b >= sys.level - sys.damage ? '#ff3355' : '#00ff88';
+            ctx.fillRect(r.x + 4 + b * 6, r.y + r.h - 8, 4, 4);
+          }
+        }
+
+        // Targeted reticle
+        const targetedBy = state.weapons.filter(w => w.targetRoomId === r.id);
+        if (targetedBy.length > 0) {
+          ctx.strokeStyle = '#ffaa00';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(r.x + 2, r.y + 2, r.w - 4, r.h - 4);
+          ctx.fillStyle = '#ffaa00';
+          ctx.font = 'bold 9px monospace';
+          ctx.fillText(`TARGET [${targetedBy.length}]`, r.x + 4, r.y + r.h / 2);
+        }
+      });
+
+      // Enemy Name & Hull Bar
+      ctx.fillStyle = '#ff7675';
+      ctx.font = 'bold 12px monospace';
+      ctx.fillText(e.name, 470, 50);
+
+      const hullRatio = Math.max(0, e.hull / e.maxHull);
+      ctx.fillStyle = '#060c14';
+      ctx.fillRect(470, 55, 230, 6);
+      ctx.fillStyle = hullRatio > 0.4 ? '#ff3355' : '#ff0000';
+      ctx.fillRect(470, 55, 230 * hullRatio, 6);
+
+      ctx.restore();
+    }
+
+    function renderProjectiles() {
+      ctx.save();
+      state.projectiles.forEach(p => {
+        if (p.type === 'missile') {
+          ctx.fillStyle = '#ffaa00';
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (p.type === 'ion') {
+          ctx.fillStyle = '#00ffff';
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.strokeStyle = p.fromPlayer ? '#00ff88' : '#ff3355';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(p.x - 8, p.y);
+          ctx.lineTo(p.x + 8, p.y);
+          ctx.stroke();
+        }
+      });
+      ctx.restore();
+    }
+
+    function renderParticles() {
+      ctx.save();
+      state.particles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
+        ctx.fillRect(p.x, p.y, p.size, p.size);
+      });
+      ctx.restore();
+    }
+
+    function renderFloatingTexts() {
+      ctx.save();
+      state.floatingTexts.forEach(t => {
+        ctx.fillStyle = t.color;
+        ctx.globalAlpha = Math.min(1, t.life);
+        ctx.font = 'bold 12px monospace';
+        ctx.fillText(t.text, t.x, t.y);
+      });
+      ctx.restore();
+    }
+
+    // --------------------------------------------------------------------------
+    // 13. UI UPDATER
+    // --------------------------------------------------------------------------
+    function updateHUD() {
+      document.getElementById('hud-hull-txt').textContent = `${state.hull} / ${state.maxHull}`;
+      document.getElementById('hud-evade-txt').textContent = `${state.getEvasion()}%`;
+      document.getElementById('hud-shield-txt').textContent = `${state.systems.shields.bubbleCount} / ${state.systems.shields.maxBubbles}`;
+      document.getElementById('hud-scrap-txt').textContent = state.scrap;
+      document.getElementById('hud-fuel-txt').textContent = state.fuel;
+      document.getElementById('hud-missiles-txt').textContent = state.missiles;
+      document.getElementById('hud-sector-info').textContent = `SECTOR ${state.sector}: ${getSectorName(state.sector)}`;
+
+      // Hull segments
+      const segContainer = document.getElementById('hud-hull-segments');
+      segContainer.innerHTML = '';
+      for (let i = 0; i < state.maxHull; i++) {
+        const seg = document.createElement('div');
+        seg.className = 'hull-seg' + (i >= state.hull ? ' damaged' : state.hull <= 8 ? ' critical' : '');
+        segContainer.appendChild(seg);
+      }
+
+      // Reactor pool
+      const rBars = document.getElementById('reactor-pool-bars');
+      rBars.innerHTML = '';
+      const avail = state.getAvailablePower();
+      for (let i = 0; i < state.reactor; i++) {
+        const pip = document.createElement('div');
+        pip.className = 'power-pip' + (i < avail ? ' unallocated' : ' used');
+        rBars.appendChild(pip);
+      }
+      document.getElementById('reactor-power-txt').textContent = `${avail} / ${state.reactor}`;
+
+      renderSystemsHUD();
+      renderWeaponsHUD();
+      renderCrewHUD();
+    }
+
+    function getSectorName(sec) {
+      const names = [
+        '연방 국경 수비 구역', '민간 교역 항로', '엔지 기술 연구 성계',
+        '해적 무법 지대', '맨티스 전투 성역', '락맨 소행성대',
+        '반란군 대함대 선봉대', '사령부 최후의 보루 (FINAL BOSS)'
+      ];
+      return names[sec - 1] || '미지의 심우주';
+    }
+
+    function renderSystemsHUD() {
+      const container = document.getElementById('systems-container');
+      container.innerHTML = '';
+
+      const sysKeys = ['shields', 'engines', 'weapons', 'oxygen', 'medbay', 'piloting'];
+      const labels = { shields: '쉴드', engines: '엔진', weapons: '무기', oxygen: '산소', medbay: '의료', piloting: '조종' };
+
+      sysKeys.forEach(k => {
+        const sys = state.systems[k];
+        const col = document.createElement('div');
+        col.className = 'system-column';
+
+        const track = document.createElement('div');
+        track.className = 'sys-power-track';
+        track.title = `${labels[k]} 전력 할당 (클릭: +1 / 우클릭: -1)`;
+
+        for (let i = 0; i < sys.level; i++) {
+          const pip = document.createElement('div');
+          pip.className = 'sys-pip';
+          if (i < sys.power) pip.classList.add('active');
+          if (i >= sys.level - sys.damage) pip.classList.add('damaged');
+          if (sys.ionTimer > 0) pip.classList.add('ion-locked');
+          track.appendChild(pip);
+        }
+
+        track.onclick = () => allocatePower(k, 1);
+        track.oncontextmenu = (e) => { e.preventDefault(); allocatePower(k, -1); };
+
+        col.appendChild(track);
+
+        const btns = document.createElement('div');
+        btns.className = 'sys-btn-group';
+
+        const btnUp = document.createElement('div');
+        btnUp.className = 'sys-adj-btn';
+        btnUp.textContent = '+';
+        btnUp.onclick = () => allocatePower(k, 1);
+
+        const btnDown = document.createElement('div');
+        btnDown.className = 'sys-adj-btn';
+        btnDown.textContent = '-';
+        btnDown.onclick = () => allocatePower(k, -1);
+
+        btns.appendChild(btnUp);
+        btns.appendChild(btnDown);
+        col.appendChild(btns);
+
+        const label = document.createElement('div');
+        label.className = 'sys-icon-label';
+        label.innerHTML = `<span class="sys-name">${labels[k]}</span><span>${sys.power}/${sys.level}</span>`;
+        col.appendChild(label);
+
+        container.appendChild(col);
+      });
+    }
+
+    function allocatePower(sysKey, delta) {
+      sound.playClick();
+      const sys = state.systems[sysKey];
+      if (delta > 0) {
+        if (state.getAvailablePower() > 0 && sys.power < sys.level) {
+          sys.power++;
+        }
+      } else {
+        if (sys.power > 0) {
+          sys.power--;
+        }
+      }
+      state.updateShieldBubbles();
+    }
+
+    function renderWeaponsHUD() {
+      const container = document.getElementById('weapon-slots-container');
+      container.innerHTML = '';
+
+      state.weapons.forEach((w, idx) => {
+        const card = document.createElement('div');
+        card.className = 'weapon-card' + (state.selectedWeaponIndex === idx ? ' selected' : '') + (!w.powered ? ' unpowered' : '');
+
+        card.innerHTML = `
+          <div class="wpn-top">
+            <span class="wpn-name">${idx + 1}. ${w.name}</span>
+            <span class="wpn-power-req">⚡${w.powerReq}</span>
+          </div>
+          <div class="wpn-info">
+            <span>${w.shots > 1 ? w.shots + '연발' : '단발'} (${w.damage}딜)</span>
+            <span class="wpn-target-tag">${w.targetRoomId ? '조준: ' + w.targetRoomId : '미조준'}</span>
+          </div>
+          <div class="wpn-charge-bg">
+            <div class="wpn-charge-bar ${w.charge >= w.cooldown ? 'ready' : ''}" style="width: ${(w.charge / w.cooldown) * 100}%"></div>
+          </div>
+        `;
+
+        card.onclick = () => {
+          sound.playClick();
+          state.selectedWeaponIndex = (state.selectedWeaponIndex === idx) ? null : idx;
+        };
+
+        container.appendChild(card);
+      });
+    }
+
+    function renderCrewHUD() {
+      const container = document.getElementById('crew-roster-container');
+      container.innerHTML = '<div class="crew-roster-title">승무원 명단</div>';
+
+      state.crew.forEach(c => {
+        const card = document.createElement('div');
+        card.className = 'crew-card' + (state.selectedCrew === c ? ' selected' : '');
+
+        const rInfo = RACES[c.race];
+        card.innerHTML = `
+          <div class="crew-avatar" style="background:${rInfo.color}">${c.name[0]}</div>
+          <div class="crew-details">
+            <div class="crew-name-row">
+              <span>${c.name}</span>
+              <span style="color:${rInfo.color}">${rInfo.name}</span>
+            </div>
+            <div class="crew-hp-bar">
+              <div class="crew-hp-fill" style="width:${(c.hp / c.maxHp) * 100}%"></div>
+            </div>
+          </div>
+        `;
+
+        card.onclick = () => {
+          sound.playClick();
+          state.selectedCrew = c;
+        };
+
+        container.appendChild(card);
+      });
+    }
+
+    // --------------------------------------------------------------------------
+    // 14. INPUT HANDLING
+    // --------------------------------------------------------------------------
+    canvas.addEventListener('click', (e) => {
+      sound.init();
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+
+      // 1. Click enemy room to target
+      if (state.enemy) {
+        for (let r of state.enemy.rooms) {
+          if (mx >= r.x && mx <= r.x + r.w && my >= r.y && my <= r.y + r.h) {
+            if (state.selectedWeaponIndex !== null) {
+              const w = state.weapons[state.selectedWeaponIndex];
+              w.targetRoomId = r.id;
+              sound.playClick();
+              addFloatingText(mx, my, `조준 설정: ${r.label}`, '#ffaa00');
+              return;
+            }
+          }
+        }
+      }
+
+      // 2. Click friendly crew
+      for (let c of state.crew) {
+        if (Math.hypot(mx - c.x, my - c.y) < 16) {
+          sound.playClick();
+          state.selectedCrew = c;
+          return;
+        }
+      }
+
+      // 3. Move order to selected crew
+      if (state.selectedCrew) {
+        for (let r of state.rooms) {
+          if (mx >= r.x && mx <= r.x + r.w && my >= r.y && my <= r.y + r.h) {
+            sound.playClick();
+            state.selectedCrew.targetRoom = r.id;
+            addFloatingText(mx, my, `${state.selectedCrew.name} 이동 명령`, '#00e5ff');
+            return;
+          }
+        }
+      }
+
+      // 4. Click door to toggle
+      for (let d of state.doors) {
+        const hitDist = d.vertical ? Math.abs(mx - d.x) < 8 && Math.abs(my - d.y) < 14 : Math.abs(mx - d.x) < 14 && Math.abs(my - d.y) < 8;
+        if (hitDist) {
+          sound.playClick();
+          d.open = !d.open;
+          return;
+        }
+      }
+    });
+
+    window.addEventListener('keydown', (e) => {
+      sound.init();
+
+      if (e.code === 'Space') {
+        e.preventDefault();
+        state.paused = !state.paused;
+        document.getElementById('pause-banner').style.display = state.paused ? 'block' : 'none';
+        sound.playClick();
+      }
+      if (['Digit1', 'Digit2', 'Digit3', 'Digit4'].includes(e.code)) {
+        const idx = parseInt(e.code.replace('Digit', '')) - 1;
+        if (state.weapons[idx]) {
+          state.selectedWeaponIndex = (state.selectedWeaponIndex === idx) ? null : idx;
+          sound.playClick();
+        }
+      }
+      if (e.code === 'KeyA') {
+        state.autofire = !state.autofire;
+        const btn = document.getElementById('btn-autofire');
+        btn.textContent = `자동 발사: ${state.autofire ? 'ON' : 'OFF'}`;
+        btn.classList.toggle('active', state.autofire);
+        sound.playClick();
+      }
+      if (e.code === 'KeyM') toggleMapModal();
+      if (e.code === 'KeyU') toggleUpgradesModal();
+      if (e.code === 'KeyV') toggleAirlocks();
+      if (e.code === 'Tab') {
+        e.preventDefault();
+        state.doors.forEach(d => { if (!d.isAir) d.open = true; });
+        sound.playClick();
+      }
+    });
+
+    // --------------------------------------------------------------------------
+    // 15. DOOR CONTROL FUNCTIONS
+    // --------------------------------------------------------------------------
+    document.getElementById('btn-doors-open').onclick = () => {
+      state.doors.forEach(d => { if (!d.isAir) d.open = true; });
+      sound.playClick();
+    };
+
+    document.getElementById('btn-doors-close').onclick = () => {
+      state.doors.forEach(d => d.open = false);
+      sound.playClick();
+    };
+
+    document.getElementById('btn-doors-vent').onclick = toggleAirlocks;
+
+    function toggleAirlocks() {
+      const anyAirOpen = state.doors.some(d => d.isAir && d.open);
+      state.doors.forEach(d => {
+        if (d.isAir) d.open = !anyAirOpen;
+      });
+      sound.playClick();
+      addFloatingText(180, 160, anyAirOpen ? '에어락 폐쇄' : '⚠️ 긴급 진공 배출 가동!', '#ff3355');
+    }
+
+    document.getElementById('btn-sound-toggle').onclick = () => {
+      sound.init();
+      const isMuted = sound.toggleMute();
+      document.getElementById('sound-icon').textContent = isMuted ? '🔇' : '🔊';
+    };
+
+    // --------------------------------------------------------------------------
+    // 16. MODAL SYSTEM
+    // --------------------------------------------------------------------------
+    function openModal(id) {
+      document.getElementById(id).classList.add('active');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    function toggleMapModal() {
+      const m = document.getElementById('modal-map');
+      if (m.classList.contains('active')) {
+        closeModal('modal-map');
+      } else {
+        openModal('modal-map');
+        renderMap();
+      }
+    }
+
+    function toggleUpgradesModal() {
+      const m = document.getElementById('modal-upgrades');
+      if (m.classList.contains('active')) {
+        closeModal('modal-upgrades');
+      } else {
+        openModal('modal-upgrades');
+        renderUpgrades();
+      }
+    }
+
+    document.getElementById('btn-map').onclick = toggleMapModal;
+    document.getElementById('btn-close-map').onclick = () => closeModal('modal-map');
+    document.getElementById('btn-upgrades').onclick = toggleUpgradesModal;
+    document.getElementById('btn-close-upgrades').onclick = () => closeModal('modal-upgrades');
+    document.getElementById('btn-close-store').onclick = () => closeModal('modal-store');
+
+    document.getElementById('btn-autofire').onclick = () => {
+      state.autofire = !state.autofire;
+      const btn = document.getElementById('btn-autofire');
+      btn.textContent = `자동 발사: ${state.autofire ? 'ON' : 'OFF'}`;
+      btn.classList.toggle('active', state.autofire);
+    };
+
+    // --------------------------------------------------------------------------
+    // 17. GALAXY MAP RENDERING & JUMPING
+    // --------------------------------------------------------------------------
+    const mapCanvas = document.getElementById('map-canvas');
+    const mapCtx = mapCanvas.getContext('2d');
+
+    function renderMap() {
+      mapCtx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
+      const w = mapCanvas.width;
+      const h = mapCanvas.height;
+
+      // Draw Nebulae
+      state.map.nodes.filter(n => n.type === 'nebula').forEach(n => {
+        const nx = 60 + n.col * ((w - 120) / 6);
+        const ny = 40 + n.yRatio * (h - 80);
+        mapCtx.fillStyle = 'rgba(189, 0, 255, 0.15)';
+        mapCtx.beginPath();
+        mapCtx.arc(nx, ny, 45, 0, Math.PI * 2);
+        mapCtx.fill();
+      });
+
+      // Connections
+      state.map.nodes.forEach(fn => {
+        const fx = 60 + fn.col * ((w - 120) / 6);
+        const fy = 40 + fn.yRatio * (h - 80);
+
+        fn.connections.forEach(targetId => {
+          const tn = state.map.nodes.find(n => n.id === targetId);
+          if (tn) {
+            const tx = 60 + tn.col * ((w - 120) / 6);
+            const ty = 40 + tn.yRatio * (h - 80);
+
+            mapCtx.strokeStyle = fn.visited ? '#1d4268' : '#0c2238';
+            mapCtx.lineWidth = 1.5;
+            mapCtx.beginPath();
+            mapCtx.moveTo(fx, fy);
+            mapCtx.lineTo(tx, ty);
+            mapCtx.stroke();
+          }
+        });
+      });
+
+      // Rebel Fleet Pursuit Line
+      const fleetX = 60 + state.rebelFleetCol * ((w - 120) / 6);
+      mapCtx.strokeStyle = 'rgba(255, 51, 85, 0.8)';
+      mapCtx.lineWidth = 3;
+      mapCtx.setLineDash([8, 6]);
+      mapCtx.beginPath();
+      mapCtx.moveTo(fleetX, 0);
+      mapCtx.lineTo(fleetX, h);
+      mapCtx.stroke();
+      mapCtx.setLineDash([]);
+
+      mapCtx.fillStyle = 'rgba(255, 51, 85, 0.12)';
+      mapCtx.fillRect(0, 0, fleetX, h);
+
+      // Draw Nodes
+      state.map.nodes.forEach(n => {
+        const nx = 60 + n.col * ((w - 120) / 6);
+        const ny = 40 + n.yRatio * (h - 80);
+
+        const isCurrent = state.currentBeacon && state.currentBeacon.id === n.id;
+        const canJump = state.currentBeacon && state.currentBeacon.connections.includes(n.id) && !state.inCombat;
+
+        mapCtx.fillStyle = isCurrent ? '#00e5ff' : canJump ? '#00ff88' : n.visited ? '#556677' : '#e2f1ff';
+        mapCtx.beginPath();
+        mapCtx.arc(nx, ny, isCurrent ? 8 : 6, 0, Math.PI * 2);
+        mapCtx.fill();
+
+        mapCtx.fillStyle = isCurrent ? '#00e5ff' : '#8fa8c2';
+        mapCtx.font = '10px monospace';
+        mapCtx.fillText(n.label, nx - 20, ny - 10);
+      });
+    }
+
+    mapCanvas.addEventListener('click', (e) => {
+      const rect = mapCanvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      const w = mapCanvas.width;
+      const h = mapCanvas.height;
+
+      state.map.nodes.forEach(n => {
+        const nx = 60 + n.col * ((w - 120) / 6);
+        const ny = 40 + n.yRatio * (h - 80);
+        if (Math.hypot(mx - nx, my - ny) < 18) {
+          if (state.currentBeacon && state.currentBeacon.connections.includes(n.id)) {
+            executeJump(n);
+          }
+        }
+      });
+    });
+
+    function executeJump(targetNode) {
+      if (state.fuel <= 0) {
+        alertModal('연료 고갈!', 'FTL 점프를 위한 연료가 바닥났습니다! 조난 신호를 송출해야 합니다.');
+        return;
+      }
+      if (state.inCombat) {
+        alertModal('전투 중!', '적 함선과 교전 중에는 FTL 점프를 실행할 수 없습니다.');
+        return;
+      }
+
+      state.fuel--;
+      state.beaconsVisited++;
+      state.currentBeacon = targetNode;
+      targetNode.visited = true;
+
+      // Fleet advances
+      const fleetAdvance = targetNode.type === 'nebula' ? 0.45 : 0.9;
+      state.rebelFleetCol += fleetAdvance;
+
+      sound.playJump();
+      closeModal('modal-map');
+
+      // Auto-save on jump
+      state.saveToStorage();
+
+      // Check Sector Exit
+      if (targetNode.type === 'exit') {
+        advanceSector();
+        return;
+      }
+
+      // Check Boss Encounter
+      if (targetNode.type === 'boss') {
+        startBossEncounter();
+        return;
+      }
+
+      // Fleet Catch Encounter
+      if (targetNode.col <= state.rebelFleetCol) {
+        alertModal('반란군 선봉대 포위!', '반란군 추격 함대에게 따라잡혔습니다! 정예 전투함이 기습합니다!');
+        state.inCombat = true;
+        state.enemy = new EnemyShip(state.sector + 1);
+        return;
+      }
+
+      handleNodeArrival(targetNode);
+    }
+
+    function handleNodeArrival(node) {
+      if (node.type === 'combat') {
+        state.inCombat = true;
+        state.enemy = new EnemyShip(state.sector);
+      } else if (node.type === 'store') {
+        openStoreModal();
+      } else if (node.type === 'distress') {
+        const ev = STORY_EVENTS.find(e => e.id === 'distress_freighter');
+        triggerEvent(ev);
+      } else {
+        const ev = STORY_EVENTS[Math.floor(Math.random() * STORY_EVENTS.length)];
+        triggerEvent(ev);
+      }
+    }
+
+    function triggerEvent(ev) {
+      document.getElementById('event-title').innerHTML = `<span>📡</span> ${ev.title}`;
+      document.getElementById('event-text').textContent = ev.text;
+
+      const ch = document.getElementById('event-choices');
+      ch.innerHTML = '';
+      ev.choices.forEach(c => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.textContent = c.text;
+        btn.onclick = () => c.action(state);
+        ch.appendChild(btn);
+      });
+
+      openModal('modal-event');
+    }
+
+    function advanceSector() {
+      if (state.sector < 8) {
+        state.sector++;
+        state.map = new GalaxyMap(state.sector);
+        state.currentBeacon = state.map.nodes[0];
+        state.rebelFleetCol = 0.5;
+        state.saveToStorage();
+        alertModal(`섹터 ${state.sector} 진입`, `${getSectorName(state.sector)}에 도달했습니다. 경계를 늦추지 마십시오.`);
+      }
+    }
+
+    function startBossEncounter() {
+      alertModal('⚠️ 반란군 플래그십 조우!', '반란군 총기함이 위용을 드러냈습니다! 연방의 마지막 희망이 이 함전에 달려 있습니다!');
+      state.inCombat = true;
+      state.enemy = new EnemyShip(8, true, 1);
+    }
+
+    // --------------------------------------------------------------------------
+    // 18. UPGRADES MODAL
+    // --------------------------------------------------------------------------
+    function renderUpgrades() {
+      document.getElementById('upg-current-scrap').textContent = state.scrap;
+      document.getElementById('upg-current-reactor').textContent = `${state.getAvailablePower()} / ${state.reactor}`;
+
+      const grid = document.getElementById('upgrades-grid');
+      grid.innerHTML = '';
+
+      // 1. Reactor upgrade
+      const rCost = 20 + state.reactor * 5;
+      const rCard = document.createElement('div');
+      rCard.className = 'upgrade-card';
+      rCard.innerHTML = `
+        <div class="upg-title"><span>원자로 출력 증설</span><span>${state.reactor} Bars</span></div>
+        <div style="font-size:11px; color:var(--text-dim);">총 전력 용량을 1칸 증설합니다.</div>
+        <div class="upg-action-row">
+          <span class="upg-cost">${rCost} ⚙️</span>
+          <button class="upg-buy-btn" ${state.scrap < rCost ? 'disabled' : ''}>증설</button>
+        </div>
+      `;
+      rCard.querySelector('.upg-buy-btn').onclick = () => {
+        if (state.scrap >= rCost) {
+          state.scrap -= rCost;
+          state.reactor++;
+          sound.playClick();
+          state.saveToStorage();
+          renderUpgrades();
+        }
+      };
+      grid.appendChild(rCard);
+
+      // 2. Subsystems upgrades
+      const sysNames = { shields: '방어막(Shields)', engines: '엔진(Engines)', weapons: '무기 관제(Weapons)', oxygen: '산소(Oxygen)', medbay: '의료실(Medbay)', piloting: '조종실(Piloting)' };
+
+      for (let k in sysNames) {
+        const sys = state.systems[k];
+        const cost = 25 + sys.level * 15;
+        const card = document.createElement('div');
+        card.className = 'upgrade-card';
+
+        let pipsHtml = '';
+        for (let i = 0; i < sys.maxLevel; i++) {
+          pipsHtml += `<div class="upg-pip ${i < sys.level ? 'owned' : ''}"></div>`;
+        }
+
+        card.innerHTML = `
+          <div class="upg-title"><span>${sysNames[k]}</span><span>Lv.${sys.level}</span></div>
+          <div class="upg-bars">${pipsHtml}</div>
+          <div class="upg-action-row">
+            <span class="upg-cost">${sys.level < sys.maxLevel ? cost + ' ⚙️' : 'MAX'}</span>
+            <button class="upg-buy-btn" ${sys.level >= sys.maxLevel || state.scrap < cost ? 'disabled' : ''}>강화</button>
+          </div>
+        `;
+
+        card.querySelector('.upg-buy-btn').onclick = () => {
+          if (sys.level < sys.maxLevel && state.scrap >= cost) {
+            state.scrap -= cost;
+            sys.level++;
+            sound.playClick();
+            state.saveToStorage();
+            renderUpgrades();
+          }
+        };
+
+        grid.appendChild(card);
+      }
+    }
+
+    // --------------------------------------------------------------------------
+    // 19. STORE MODAL (Repairs, Fuel, Weapons, Crew Hiring)
+    // --------------------------------------------------------------------------
+    function openStoreModal() {
+      document.getElementById('store-current-scrap').textContent = state.scrap;
+      document.getElementById('store-current-hull').textContent = `${state.hull} / ${state.maxHull}`;
+      const content = document.getElementById('store-content');
+
+      content.innerHTML = `
+        <div class="store-category-title">선체 수리 및 군수 보급품</div>
+        <div class="store-items-row">
+          <div class="store-item-card">
+            <span class="store-item-name">장갑 긴급 수리 (+5 HULL)</span>
+            <span class="store-item-desc">파손된 선체 장갑판을 복구합니다.</span>
+            <button class="upg-buy-btn" id="btn-buy-repair" ${state.scrap < 15 || state.hull >= state.maxHull ? 'disabled' : ''}>15 ⚙️ 수리</button>
+          </div>
+          <div class="store-item-card">
+            <span class="store-item-name">FTL 연료 전지 (+3)</span>
+            <span class="store-item-desc">비콘 도약에 필수적인 고밀도 연료.</span>
+            <button class="upg-buy-btn" id="btn-buy-fuel" ${state.scrap < 9 ? 'disabled' : ''}>9 ⚙️ 구매</button>
+          </div>
+          <div class="store-item-card">
+            <span class="store-item-name">미사일 탄약 팩 (+4)</span>
+            <span class="store-item-desc">장갑 관통 결전 미사일 보충.</span>
+            <button class="upg-buy-btn" id="btn-buy-missiles" ${state.scrap < 14 ? 'disabled' : ''}>14 ⚙️ 구매</button>
+          </div>
+        </div>
+
+        <div class="store-category-title" style="margin-top:16px;">무기 암시장 (WEAPONS MARKET)</div>
+        <div class="store-items-row">
+          <div class="store-item-card">
+            <span class="store-item-name">${WEAPON_TYPES.BURST_LASER_2.name}</span>
+            <span class="store-item-desc">${WEAPON_TYPES.BURST_LASER_2.desc}</span>
+            <button class="upg-buy-btn" id="btn-buy-w1" ${state.scrap < WEAPON_TYPES.BURST_LASER_2.cost || state.weapons.length >= 4 ? 'disabled' : ''}>${WEAPON_TYPES.BURST_LASER_2.cost} ⚙️ 장착</button>
+          </div>
+          <div class="store-item-card">
+            <span class="store-item-name">${WEAPON_TYPES.HALBERD_BEAM.name}</span>
+            <span class="store-item-desc">${WEAPON_TYPES.HALBERD_BEAM.desc}</span>
+            <button class="upg-buy-btn" id="btn-buy-w2" ${state.scrap < WEAPON_TYPES.HALBERD_BEAM.cost || state.weapons.length >= 4 ? 'disabled' : ''}>${WEAPON_TYPES.HALBERD_BEAM.cost} ⚙️ 장착</button>
+          </div>
+          <div class="store-item-card">
+            <span class="store-item-name">${WEAPON_TYPES.BREACH_MISSILE.name}</span>
+            <span class="store-item-desc">${WEAPON_TYPES.BREACH_MISSILE.desc}</span>
+            <button class="upg-buy-btn" id="btn-buy-w3" ${state.scrap < WEAPON_TYPES.BREACH_MISSILE.cost || state.weapons.length >= 4 ? 'disabled' : ''}>${WEAPON_TYPES.BREACH_MISSILE.cost} ⚙️ 장착</button>
+          </div>
+        </div>
+
+        <div class="store-category-title" style="margin-top:16px;">외계 용병 고용소 (CREW RECRUITMENT)</div>
+        <div class="store-items-row">
+          <div class="store-item-card">
+            <span class="store-item-name" style="color:#3498db;">엔지니어 (Engi)</span>
+            <span class="store-item-desc">2배 빠른 수리 속도. 시스템 수리 특화.</span>
+            <button class="upg-buy-btn" id="btn-buy-c-engi" ${state.scrap < 45 || state.crew.length >= 6 ? 'disabled' : ''}>45 ⚙️ 고용</button>
+          </div>
+          <div class="store-item-card">
+            <span class="store-item-name" style="color:#2ecc71;">맨티스 전사 (Mantis)</span>
+            <span class="store-item-desc">1.5배 백병전 피해. 선내 침투 적 격퇴 특화.</span>
+            <button class="upg-buy-btn" id="btn-buy-c-mantis" ${state.scrap < 50 || state.crew.length >= 6 ? 'disabled' : ''}>50 ⚙️ 고용</button>
+          </div>
+          <div class="store-item-card">
+            <span class="store-item-name" style="color:#f1c40f;">졸탄 생체발전관 (Zoltan)</span>
+            <span class="store-item-desc">탑승 룸에 상시 무료 전력 +1 공급.</span>
+            <button class="upg-buy-btn" id="btn-buy-c-zoltan" ${state.scrap < 50 || state.crew.length >= 6 ? 'disabled' : ''}>50 ⚙️ 고용</button>
+          </div>
+        </div>
+      `;
+
+      // Handlers
+      document.getElementById('btn-buy-repair').onclick = () => {
+        if (state.scrap >= 15 && state.hull < state.maxHull) {
+          state.scrap -= 15;
+          state.hull = Math.min(state.maxHull, state.hull + 5);
+          sound.playClick();
+          state.saveToStorage();
+          openStoreModal();
+        }
+      };
+      document.getElementById('btn-buy-fuel').onclick = () => {
+        if (state.scrap >= 9) {
+          state.scrap -= 9;
+          state.fuel += 3;
+          sound.playClick();
+          state.saveToStorage();
+          openStoreModal();
+        }
+      };
+      document.getElementById('btn-buy-missiles').onclick = () => {
+        if (state.scrap >= 14) {
+          state.scrap -= 14;
+          state.missiles += 4;
+          sound.playClick();
+          state.saveToStorage();
+          openStoreModal();
+        }
+      };
+      document.getElementById('btn-buy-w1').onclick = () => {
+        const cost = WEAPON_TYPES.BURST_LASER_2.cost;
+        if (state.scrap >= cost && state.weapons.length < 4) {
+          state.scrap -= cost;
+          state.weapons.push({ ...WEAPON_TYPES.BURST_LASER_2, charge: 0, powered: true, targetRoomId: null });
+          sound.playClick();
+          state.saveToStorage();
+          openStoreModal();
+        }
+      };
+      document.getElementById('btn-buy-w2').onclick = () => {
+        const cost = WEAPON_TYPES.HALBERD_BEAM.cost;
+        if (state.scrap >= cost && state.weapons.length < 4) {
+          state.scrap -= cost;
+          state.weapons.push({ ...WEAPON_TYPES.HALBERD_BEAM, charge: 0, powered: true, targetRoomId: null });
+          sound.playClick();
+          state.saveToStorage();
+          openStoreModal();
+        }
+      };
+      document.getElementById('btn-buy-w3').onclick = () => {
+        const cost = WEAPON_TYPES.BREACH_MISSILE.cost;
+        if (state.scrap >= cost && state.weapons.length < 4) {
+          state.scrap -= cost;
+          state.weapons.push({ ...WEAPON_TYPES.BREACH_MISSILE, charge: 0, powered: true, targetRoomId: null });
+          sound.playClick();
+          state.saveToStorage();
+          openStoreModal();
+        }
+      };
+      document.getElementById('btn-buy-c-engi').onclick = () => {
+        if (state.scrap >= 45 && state.crew.length < 6) {
+          state.scrap -= 45;
+          state.crew.push({ id: 'c_' + Date.now(), name: '엔지 기술원', race: 'engi', hp: 70, maxHp: 70, currentRoom: 'engines', x: 80, y: 150, targetRoom: null });
+          sound.playClick();
+          state.saveToStorage();
+          openStoreModal();
+        }
+      };
+      document.getElementById('btn-buy-c-mantis').onclick = () => {
+        if (state.scrap >= 50 && state.crew.length < 6) {
+          state.scrap -= 50;
+          state.crew.push({ id: 'c_' + Date.now(), name: '맨티스 강습병', race: 'mantis', hp: 100, maxHp: 100, currentRoom: 'weapons', x: 210, y: 190, targetRoom: null });
+          sound.playClick();
+          state.saveToStorage();
+          openStoreModal();
+        }
+      };
+      document.getElementById('btn-buy-c-zoltan').onclick = () => {
+        if (state.scrap >= 50 && state.crew.length < 6) {
+          state.scrap -= 50;
+          state.crew.push({ id: 'c_' + Date.now(), name: '졸탄 사절', race: 'zoltan', hp: 70, maxHp: 70, currentRoom: 'shields', x: 210, y: 110, targetRoom: null });
+          sound.playClick();
+          state.saveToStorage();
+          openStoreModal();
+        }
+      };
+
+      openModal('modal-store');
+    }
+
+    // --------------------------------------------------------------------------
+    // 20. INITIALIZATION & SHIP SELECTION
+    // --------------------------------------------------------------------------
+    function renderStartScreen() {
+      const grid = document.getElementById('ship-select-grid');
+      grid.innerHTML = '';
+
+      for (let k in SHIP_CLASSES) {
+        const s = SHIP_CLASSES[k];
+        const card = document.createElement('div');
+        card.className = 'ship-choice-card' + (state.selectedShipId === s.id ? ' selected' : '') + (!s.unlocked ? ' locked' : '');
+
+        card.innerHTML = `
+          <div style="font-weight:bold; font-size:14px; color:var(--accent-cyan); margin-bottom:4px;">${s.name}</div>
+          <div style="font-size:11px; color:var(--text-dim); line-height:1.4;">${s.desc}</div>
+          <div style="margin-top:8px; font-size:10px; color:${s.unlocked ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight:bold;">
+            ${s.unlocked ? '출격 승인 완료' : '🔒 잠김 (플래그십 클리어 시 해금)'}
+          </div>
+        `;
+
+        if (s.unlocked) {
+          card.onclick = () => {
+            state.selectedShipId = s.id;
+            renderStartScreen();
+          };
+        }
+        grid.appendChild(card);
+      }
+
+      // Check if continue save exists
+      const btnContinue = document.getElementById('btn-continue-run');
+      const hasSave = !!localStorage.getItem('void_strider_active_run');
+      btnContinue.style.display = hasSave ? 'block' : 'none';
+    }
+
+    function startNewRun() {
+      const shipDef = SHIP_CLASSES[state.selectedShipId];
+      state.initShip(shipDef);
+      state.sector = 1;
+      state.map = new GalaxyMap(1);
+      state.currentBeacon = state.map.nodes[0];
+      state.rebelFleetCol = 0.5;
+      state.kills = 0;
+      state.beaconsVisited = 0;
+      state.scrapTotal = 0;
+      state.inCombat = false;
+      state.enemy = null;
+      state.paused = false;
+
+      state.saveToStorage();
+      closeModal('modal-start');
+      closeModal('modal-gameover');
+      sound.init();
+      sound.playJump();
+    }
+
+    function continueRun() {
+      if (state.loadFromStorage()) {
+        closeModal('modal-start');
+        closeModal('modal-gameover');
+        sound.init();
+        sound.playJump();
+      } else {
+        startNewRun();
+      }
+    }
+
+    document.getElementById('btn-start-run').onclick = startNewRun;
+    document.getElementById('btn-continue-run').onclick = continueRun;
+    document.getElementById('btn-restart-run').onclick = () => {
+      closeModal('modal-gameover');
+      openModal('modal-start');
+      renderStartScreen();
+    };
+
+    // Auto resize and start game loop
+    resizeCanvas();
+    renderStartScreen();
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>
