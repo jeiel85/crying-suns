@@ -160,6 +160,27 @@ async function runTests() {
   const boss3 = new EnemyShip(8, true, 3);
   console.assert(boss3.superShield === 12, 'Boss Phase 3 should have 12 Zoltan Super Shield');
 
+  console.log('Testing Multilingual (i18n) Support...');
+  console.assert(currentLang === 'ko', 'Default language should be Korean (ko)');
+  console.assert(t('hullLabel').includes('선체'), 'Korean hullLabel should contain 선체');
+  toggleLanguage();
+  console.assert(currentLang === 'en', 'Language should switch to English (en)');
+  console.assert(t('hullLabel') === 'HULL INTEGRITY', 'English hullLabel should be HULL INTEGRITY');
+  console.assert(localStorage.getItem('void_strider_lang') === 'en', 'Saved language in localStorage should be en');
+  toggleLanguage();
+  console.assert(currentLang === 'ko', 'Language should switch back to Korean (ko)');
+  console.assert(localStorage.getItem('void_strider_lang') === 'ko', 'Saved language in localStorage should be ko');
+  // Check key parity between ko and en
+  const koKeys = Object.keys(I18N.ko);
+  const enKeys = Object.keys(I18N.en);
+  for (const k of koKeys) {
+    console.assert(I18N.en[k] !== undefined, `Missing English key for: ${k}`);
+  }
+  for (const k of enKeys) {
+    console.assert(I18N.ko[k] !== undefined, `Missing Korean key for: ${k}`);
+  }
+  console.log('All i18n dictionary keys and toggles verified 100%!');
+
   console.log('\n========================================');
   console.log('ALL VERIFICATION TESTS PASSED! 100% OK! ✅');
   console.log('========================================');

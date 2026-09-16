@@ -53,7 +53,7 @@
       height: 100vh;
       pointer-events: none;
       z-index: 999;
-      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.03));
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
       background-size: 100% 4px, 6px 100%;
       opacity: 0.55;
     }
@@ -74,7 +74,7 @@
     .hud-group {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
     }
 
     .ship-name-badge {
@@ -83,7 +83,7 @@
     }
 
     .ship-title {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: bold;
       color: var(--accent-cyan);
       letter-spacing: 1px;
@@ -156,14 +156,14 @@
 
     .nav-buttons {
       display: flex;
-      gap: 8px;
+      gap: 6px;
     }
 
     .hud-btn {
       background: #112235;
       color: var(--accent-cyan);
       border: 1px solid var(--border-cyan);
-      padding: 6px 12px;
+      padding: 5px 11px;
       font-family: var(--font-mono);
       font-size: 12px;
       font-weight: bold;
@@ -179,6 +179,17 @@
       background: var(--accent-cyan);
       color: #000;
       box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+    }
+
+    .hud-btn.lang-btn {
+      background: #0a1f33;
+      border-color: #2980b9;
+      color: #85c1e9;
+    }
+
+    .hud-btn.lang-btn:hover {
+      background: #3498db;
+      color: #fff;
     }
 
     .hud-btn.jump-btn {
@@ -1010,49 +1021,53 @@
 
       <div class="hull-bar-container">
         <div class="hull-label">
-          <span>선체 장갑 (HULL)</span>
+          <span id="hud-hull-label">선체 장갑 (HULL)</span>
           <span id="hud-hull-txt">30 / 30</span>
         </div>
         <div class="hull-segments" id="hud-hull-segments"></div>
       </div>
 
-      <div class="res-badge res-evasion" title="회피 확률 (엔진 출력 & 조종 승무원)">
+      <div class="res-badge res-evasion" id="badge-evasion" title="회피 확률">
         <span class="icon">⮑</span>
         <span id="hud-evade-txt">20%</span>
       </div>
 
-      <div class="res-badge res-shields" style="color:var(--shield-blue); border-color:#164e63;" title="다층 에너지 방어막">
+      <div class="res-badge res-shields" id="badge-shields" style="color:var(--shield-blue); border-color:#164e63;" title="방어막">
         <span class="icon">🛡️</span>
         <span id="hud-shield-txt">1 / 1</span>
       </div>
     </div>
 
     <div class="hud-group">
-      <div class="res-badge res-scrap" title="스크랩 (강화 및 구매 자원)">
+      <div class="res-badge res-scrap" id="badge-scrap" title="스크랩">
         <span class="icon">⚙️</span>
         <span id="hud-scrap-txt">30</span>
       </div>
 
-      <div class="res-badge res-fuel" title="FTL 점프 연료">
+      <div class="res-badge res-fuel" id="badge-fuel" title="연료">
         <span class="icon">⛽</span>
         <span id="hud-fuel-txt">16</span>
       </div>
 
-      <div class="res-badge res-missiles" title="장갑 관통 미사일 탄약">
+      <div class="res-badge res-missiles" id="badge-missiles" title="미사일">
         <span class="icon">🚀</span>
         <span id="hud-missiles-txt">8</span>
       </div>
+
+      <button class="hud-btn lang-btn" id="btn-lang-toggle" title="언어 전환 / Switch Language">
+        <span>🌐</span> <span id="hud-lang-txt">한국어</span>
+      </button>
 
       <button class="hud-btn" id="btn-sound-toggle" title="사운드 음소거/켜기">
         <span id="sound-icon">🔊</span>
       </button>
 
       <div class="nav-buttons">
-        <button class="hud-btn" id="btn-upgrades" title="함선 시스템 & 원자로 강화 [U]">
-          <span>🛠️</span> 강화
+        <button class="hud-btn" id="btn-upgrades" title="함선 시스템 강화 [U]">
+          <span>🛠️</span> <span id="btn-upg-txt">강화</span>
         </button>
-        <button class="hud-btn jump-btn" id="btn-map" title="성계 은하 지도 및 FTL 도약 [M]">
-          <span>🌌</span> 성계 지도
+        <button class="hud-btn jump-btn" id="btn-map" title="성계 은하 지도 [M]">
+          <span>🌌</span> <span id="btn-map-txt">성계 지도</span>
         </button>
       </div>
     </div>
@@ -1072,20 +1087,20 @@
     </div>
 
     <div id="quick-hints">
-      <span><span class="hint-key">[Space]</span> 일시정지</span>
-      <span><span class="hint-key">[1-4]</span> 무기조준</span>
-      <span><span class="hint-key">[A]</span> 자동발사</span>
-      <span><span class="hint-key">[V]</span> 에어락배출</span>
-      <span><span class="hint-key">[M]</span> 지도</span>
-      <span><span class="hint-key">[U]</span> 강화</span>
+      <span><span class="hint-key">[Space]</span> <span id="hint-txt-pause">일시정지</span></span>
+      <span><span class="hint-key">[1-4]</span> <span id="hint-txt-target">무기조준</span></span>
+      <span><span class="hint-key">[A]</span> <span id="hint-txt-autofire">자동발사</span></span>
+      <span><span class="hint-key">[V]</span> <span id="hint-txt-vent">에어락배출</span></span>
+      <span><span class="hint-key">[M]</span> <span id="hint-txt-map">지도</span></span>
+      <span><span class="hint-key">[U]</span> <span id="hint-txt-upg">강화</span></span>
     </div>
   </main>
 
   <!-- BOTTOM CONTROL PANEL -->
   <footer id="bottom-panel">
     <!-- Reactor Pool -->
-    <div class="reactor-box" title="원자로 가용 전력">
-      <div class="reactor-header">원자로 동력</div>
+    <div class="reactor-box" id="box-reactor" title="원자로 가용 전력">
+      <div class="reactor-header" id="hud-reactor-title">원자로 동력</div>
       <div class="reactor-bars" id="reactor-pool-bars"></div>
       <div class="power-count" id="reactor-power-txt">0 / 8</div>
     </div>
@@ -1096,7 +1111,7 @@
     <!-- Weapons Slots -->
     <div class="weapons-box">
       <div class="weapons-header">
-        <span class="weapons-title">함포 무장 관제 어레이 (WEAPONS ARRAY)</span>
+        <span class="weapons-title" id="hud-weapons-title">함포 무장 관제 어레이 (WEAPONS ARRAY)</span>
         <div class="autofire-toggle">
           <button class="autofire-btn" id="btn-autofire">자동 발사: OFF</button>
         </div>
@@ -1106,8 +1121,7 @@
 
     <!-- Crew Roster -->
     <div class="crew-roster" id="crew-roster-container">
-      <div class="crew-roster-title">승무원 명단</div>
-      <!-- Crew cards populated by JS -->
+      <div class="crew-roster-title" id="hud-crew-title">승무원 명단</div>
     </div>
   </footer>
 
@@ -1115,19 +1129,19 @@
   <div class="modal-overlay" id="modal-map">
     <div class="modal-window" style="width: 880px;">
       <div class="modal-header">
-        <div class="modal-title"><span>🌌</span> 은하계 비콘 항로 지도 (SECTOR NAVIGATION)</div>
+        <div class="modal-title"><span id="map-modal-title">🌌 은하계 비콘 항로 지도 (SECTOR NAVIGATION)</span></div>
         <button class="modal-close-btn" id="btn-close-map">&times;</button>
       </div>
       <div class="modal-body" style="padding: 10px;">
         <canvas id="map-canvas" width="850" height="420"></canvas>
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; font-size:12px; color:var(--text-dim);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; font-size:12px; color:var(--text-dim);" id="map-legend-row">
           <div style="display:flex; gap:16px;">
-            <span><strong style="color:var(--accent-red);">🔴 붉은 파동선</strong>: 반란군 추격 함대 경고선</span>
-            <span><strong style="color:var(--accent-cyan);">🔵 점</strong>: 현재 위치</span>
-            <span><strong style="color:var(--accent-green);">🟢 점</strong>: 도약 가능 비콘</span>
-            <span><strong style="color:#bd00ff;">🟣 구름</strong>: 성운 (추격 함대 속도 50% 지연)</span>
+            <span><strong style="color:var(--accent-red);">🔴</strong> <span id="legend-red">반란군 추격 함대 경고선</span></span>
+            <span><strong style="color:var(--accent-cyan);">🔵</strong> <span id="legend-cur">현재 위치</span></span>
+            <span><strong style="color:var(--accent-green);">🟢</strong> <span id="legend-jump">도약 가능 비콘</span></span>
+            <span><strong style="color:#bd00ff;">🟣</strong> <span id="legend-nebula">성운 (추격 속도 50% 지연)</span></span>
           </div>
-          <div>연료 1 소모 / 점프</div>
+          <div id="legend-fuel">연료 1 소모 / 점프</div>
         </div>
       </div>
     </div>
@@ -1137,13 +1151,13 @@
   <div class="modal-overlay" id="modal-upgrades">
     <div class="modal-window" style="width: 780px;">
       <div class="modal-header">
-        <div class="modal-title"><span>🛠️</span> 함선 서브시스템 & 원자로 강화 (SHIP UPGRADES)</div>
+        <div class="modal-title"><span id="upg-modal-title">🛠️ 함선 서브시스템 & 원자로 강화 (SHIP UPGRADES)</span></div>
         <button class="modal-close-btn" id="btn-close-upgrades">&times;</button>
       </div>
       <div class="modal-body">
         <div style="display:flex; justify-content:space-between; margin-bottom:16px; padding:8px 12px; background:#07121e; border:1px solid #16324d; border-radius:4px;">
-          <span>보유 스크랩: <strong style="color:#f1c40f;" id="upg-current-scrap">0</strong> ⚙️</span>
-          <span>원자로 용량: <strong style="color:var(--accent-green);" id="upg-current-reactor">0</strong> 전력</span>
+          <span><span id="lbl-upg-scrap">보유 스크랩</span>: <strong style="color:#f1c40f;" id="upg-current-scrap">0</strong> ⚙️</span>
+          <span><span id="lbl-upg-reactor">원자로 용량</span>: <strong style="color:var(--accent-green);" id="upg-current-reactor">0</strong></span>
         </div>
         <div class="upgrades-grid" id="upgrades-grid"></div>
       </div>
@@ -1154,13 +1168,13 @@
   <div class="modal-overlay" id="modal-store">
     <div class="modal-window" style="width: 760px;">
       <div class="modal-header">
-        <div class="modal-title"><span>🏪</span> 성계 보급 전초기지 상점 (OUTPOST STORE)</div>
+        <div class="modal-title"><span id="store-modal-title">🏪 성계 보급 전초기지 상점 (OUTPOST STORE)</span></div>
         <button class="modal-close-btn" id="btn-close-store">&times;</button>
       </div>
       <div class="modal-body">
         <div style="display:flex; justify-content:space-between; margin-bottom:16px; padding:8px 12px; background:#07121e; border:1px solid #16324d; border-radius:4px;">
-          <span>보유 스크랩: <strong style="color:#f1c40f;" id="store-current-scrap">0</strong> ⚙️</span>
-          <span>선체 상태: <strong style="color:var(--hull-green);" id="store-current-hull">30 / 30</strong></span>
+          <span><span id="lbl-store-scrap">보유 스크랩</span>: <strong style="color:#f1c40f;" id="store-current-scrap">0</strong> ⚙️</span>
+          <span><span id="lbl-store-hull">선체 상태</span>: <strong style="color:var(--hull-green);" id="store-current-hull">30 / 30</strong></span>
         </div>
         <div class="store-sections" id="store-content"></div>
       </div>
@@ -1187,10 +1201,10 @@
         <div class="hero-title" id="gameover-title">함선 침몰</div>
         <div class="hero-subtitle" id="gameover-subtitle">선체 장갑이 모두 붕괴되어 우주의 파편으로 사라졌습니다...</div>
         <div style="background:#07121e; padding:16px; border:1px solid #1c3957; border-radius:4px; margin-bottom:20px; text-align:left; font-size:13px; line-height:1.8;">
-          <div>최종 도달 섹터: <strong style="color:var(--accent-cyan);" id="stat-sector">1</strong></div>
-          <div>격퇴한 적 함선: <strong style="color:var(--accent-red);" id="stat-kills">0</strong> 척</div>
-          <div>총 수집 스크랩: <strong style="color:#f1c40f;" id="stat-scrap">0</strong> ⚙️</div>
-          <div>탐사한 비콘 수: <strong style="color:var(--accent-green);" id="stat-beacons">0</strong> 개</div>
+          <div><span id="lbl-stat-sector">최종 도달 섹터</span>: <strong style="color:var(--accent-cyan);" id="stat-sector">1</strong></div>
+          <div><span id="lbl-stat-kills">격퇴한 적 함선</span>: <strong style="color:var(--accent-red);" id="stat-kills">0</strong></div>
+          <div><span id="lbl-stat-scrap">총 수집 스크랩</span>: <strong style="color:#f1c40f;" id="stat-scrap">0</strong> ⚙️</div>
+          <div><span id="lbl-stat-beacons">탐사한 비콘 수</span>: <strong style="color:var(--accent-green);" id="stat-beacons">0</strong></div>
         </div>
         <button class="start-game-btn" id="btn-restart-run">새로운 항해 시작</button>
       </div>
@@ -1201,11 +1215,11 @@
   <div class="modal-overlay active" id="modal-start">
     <div class="modal-window" style="width: 740px;">
       <div class="modal-body hero-modal">
-        <div class="hero-title">VOID STRIDER</div>
-        <div style="font-size:15px; color:var(--accent-cyan); font-weight:bold; letter-spacing:1px; margin-bottom:6px;">
+        <div class="hero-title" id="start-hero-title">VOID STRIDER</div>
+        <div style="font-size:15px; color:var(--accent-cyan); font-weight:bold; letter-spacing:1px; margin-bottom:6px;" id="start-hero-sub">
           THE LAST BASTION
         </div>
-        <div class="hero-subtitle">
+        <div class="hero-subtitle" id="start-hero-desc">
           연방이 함락되었습니다. 당신은 기밀 암호 데이터를 지닌 순양함의 함장입니다.<br>
           추격해 오는 반란군 함대의 포위망을 뚫고 8개 섹터를 넘어 최종 사령부에 도달하십시오!
         </div>
@@ -1224,9 +1238,360 @@
 
   <script>
     /* ==========================================================================
-       VOID STRIDER: COMPLETE STANDALONE ENGINE
+       VOID STRIDER: COMPLETE MULTILINGUAL ENGINE
        Pure JavaScript HTML5 Canvas & Web Audio API
        ========================================================================== */
+
+    // --------------------------------------------------------------------------
+    // 0. INTERNATIONALIZATION (i18n) DICTIONARY
+    // --------------------------------------------------------------------------
+    const I18N = {
+      ko: {
+        langDisplay: '한국어',
+        hullLabel: '선체 장갑 (HULL)',
+        evasionTooltip: '회피 확률 (엔진 출력 & 조종 승무원)',
+        shieldTooltip: '다층 에너지 방어막',
+        scrapTooltip: '스크랩 (강화 및 구매 자원)',
+        fuelTooltip: 'FTL 점프 연료',
+        missilesTooltip: '장갑 관통 미사일 탄약',
+        soundTooltip: '사운드 음소거/켜기',
+        btnUpgrades: '강화',
+        btnMap: '성계 지도',
+        pauseBanner: '⏸ 전술 일시정지 (Active Pause) - [SPACE]',
+        doorsOpen: '내부문 개방',
+        doorsClose: '모든 문 폐쇄',
+        doorsVent: '비상 에어락 배출 (진공)',
+        hintPause: '일시정지',
+        hintTarget: '무기조준',
+        hintAutofire: '자동발사',
+        hintVent: '에어락배출',
+        hintMap: '지도',
+        hintUpgrades: '강화',
+        reactorHeader: '원자로 동력',
+        weaponsTitle: '함포 무장 관제 어레이 (WEAPONS ARRAY)',
+        autofireBtn: (on) => `자동 발사: ${on ? 'ON' : 'OFF'}`,
+        crewTitle: '승무원 명단',
+        modalMapTitle: '🌌 은하계 비콘 항로 지도 (SECTOR NAVIGATION)',
+        mapLegendRed: '반란군 추격 함대 경고선',
+        mapLegendCur: '현재 위치',
+        mapLegendJump: '도약 가능 비콘',
+        mapLegendNebula: '성운 (추격 속도 50% 지연)',
+        mapLegendFuel: '연료 1 소모 / 점프',
+        upgradesTitle: '🛠️ 함선 서브시스템 & 원자로 강화 (SHIP UPGRADES)',
+        lblUpgradesScrap: '보유 스크랩',
+        lblUpgradesReactor: '원자로 용량',
+        upgReactorTitle: '원자로 출력 증설',
+        upgReactorDesc: '총 전력 용량을 1칸 증설합니다.',
+        upgBtnInstall: '증설',
+        upgBtnUpgrade: '강화',
+        storeTitle: '🏪 성계 보급 전초기지 상점 (OUTPOST STORE)',
+        lblStoreScrap: '보유 스크랩',
+        lblStoreHull: '선체 상태',
+        storeCatRepairs: '선체 수리 및 군수 보급품',
+        storeCatWeapons: '무기 암시장 (WEAPONS MARKET)',
+        storeCatCrew: '외계 용병 고용소 (CREW RECRUITMENT)',
+        storeRepairName: '장갑 긴급 수리 (+5 HULL)',
+        storeRepairDesc: '파손된 선체 장갑판을 복구합니다.',
+        storeFuelName: 'FTL 연료 전지 (+3)',
+        storeFuelDesc: '비콘 도약에 필수적인 고밀도 연료.',
+        storeMissileName: '미사일 탄약 팩 (+4)',
+        storeMissileDesc: '장갑 관통 결전 미사일 보충.',
+        storeBtnRepair: '15 ⚙️ 수리',
+        storeBtnFuel: '9 ⚙️ 구매',
+        storeBtnMissiles: '14 ⚙️ 구매',
+        storeBtnEquip: (cost) => `${cost} ⚙️ 장착`,
+        storeBtnHire: (cost) => `${cost} ⚙️ 고용`,
+        startTitle: 'VOID STRIDER',
+        startSubtitle: 'THE LAST BASTION',
+        startDesc: '연방이 함락되었습니다. 당신은 기밀 암호 데이터를 지닌 순양함의 함장입니다.<br>추격해 오는 반란군 함대의 포위망을 뚫고 8개 섹터를 넘어 최종 사령부에 도달하십시오!',
+        btnStartRun: '새로운 임무 개시',
+        btnContinueRun: '이전 항해 이어하기',
+        shipApproved: '출격 승인 완료',
+        shipLocked: '🔒 잠김 (플래그십 클리어 시 해금)',
+        gameOverDefeatTitle: '💀 함선 완파 (GAME OVER)',
+        gameOverDefeatDesc: '선체 장갑이 모두 붕괴되어 우주의 파편으로 사라졌습니다...',
+        gameOverVictoryTitle: '🏆 연방의 구원자 (VICTORY)',
+        gameOverVictoryDesc: '반란군 총기함을 완파하고 기밀 데이터를 사령부에 무사히 전달하여 연방을 위기에서 구원했습니다!',
+        statFinalSector: '최종 도달 섹터',
+        statKills: '격퇴한 적 함선',
+        statScrap: '총 수집 스크랩',
+        statBeacons: '탐사한 비콘 수',
+        btnRestartRun: '새로운 항해 시작',
+        sysShields: '방어막(Shields)',
+        sysEngines: '엔진(Engines)',
+        sysWeapons: '무기 관제(Weapons)',
+        sysOxygen: '산소(Oxygen)',
+        sysMedbay: '의료실(Medbay)',
+        sysPiloting: '조종실(Piloting)',
+        sysShortShields: '쉴드',
+        sysShortEngines: '엔진',
+        sysShortWeapons: '무기',
+        sysShortOxygen: '산소',
+        sysShortMedbay: '의료',
+        sysShortPiloting: '조종',
+        sectorNames: [
+          '연방 국경 수비 구역', '민간 교역 항로', '엔지 기술 연구 성계',
+          '해적 무법 지대', '맨티스 전투 성역', '락맨 소행성대',
+          '반란군 대함대 선봉대', '사령부 최후의 보루 (FINAL BOSS)'
+        ],
+        nodeCombat: '적 함선 조우',
+        nodeDistress: '조난 신호 발신지',
+        nodeStore: '연방 보급 상점',
+        nodeEvent: '미확인 성간 비콘',
+        nodeNebula: '성운 은신 구역',
+        nodeExit: '다음 섹터 워프',
+        nodeBoss: '반란군 총기함',
+        nodeStart: '도착 비콘',
+        txtMiss: 'MISS!',
+        txtEvaded: '회피 성공!',
+        txtShieldHit: '방어막 피격',
+        txtShieldAbsorb: '방어막 흡수',
+        txtSuperShieldHit: '슈퍼 쉴드 -1',
+        txtFireStarted: '화재 발생!',
+        txtBreachStarted: '선체 균열(진공)!',
+        txtHullDamaged: (dmg) => `-${dmg} 선체 손상`,
+        txtEnemyHullDamaged: (dmg) => `-${dmg} HULL`,
+        txtSysDamaged: '시스템 파손!',
+        txtTargetSet: (r) => `조준 설정: ${r}`,
+        txtMoveOrder: (c) => `${c} 이동 명령`,
+        txtSuffocating: '진공 질식 중!',
+        txtBoarderDead: '침투 적 격퇴!',
+        txtBoardersInbound: '⚠️ 적 강습 분대 선내 침투!',
+        txtAirlockOpen: '⚠️ 긴급 진공 배출 가동!',
+        txtAirlockClose: '에어락 폐쇄',
+        txtNoFuel: '연료 고갈!',
+        txtNoFuelDesc: 'FTL 점프를 위한 연료가 바닥났습니다! 조난 신호를 송출해야 합니다.',
+        txtInCombat: '전투 중!',
+        txtInCombatDesc: '적 함선과 교전 중에는 FTL 점프를 실행할 수 없습니다.',
+        txtFleetAmbush: '반란군 선봉대 포위!',
+        txtFleetAmbushDesc: '반란군 추격 함대에게 따라잡혔습니다! 정예 전투함이 기습합니다!',
+        txtBossArrival: '⚠️ 반란군 플래그십 조우!',
+        txtBossArrivalDesc: '반란군 총기함이 위용을 드러냈습니다! 연방의 마지막 희망이 이 함전에 달려 있습니다!',
+        txtBossPhase2: '플래그십 페이즈 1 격퇴!',
+        txtBossPhase2Desc: '반란군 기함이 후퇴하며 자율 드론 지원 프로토콜을 가동합니다!',
+        txtBossPhase3: '플래그십 페이즈 2 격퇴!',
+        txtBossPhase3Desc: '반란군 기함의 시스템이 폭주하며 졸탄 슈퍼 쉴드를 전개합니다!',
+        txtBattleWon: '전투 승리!',
+        txtBattleWonDesc: (s, f, m) => `적 함선을 완파했습니다!\n획득: +${s} 스크랩, +${f} 연료, +${m} 미사일`,
+        txtSectorEntry: (sec, name) => `섹터 ${sec} 진입\n${name}에 도달했습니다. 경계를 늦추지 마십시오.`,
+        txtCrewDied: (name) => `${name} 질식 사망!`,
+        txtNoMissile: '미사일 탄약 부족!'
+      },
+      en: {
+        langDisplay: 'English',
+        hullLabel: 'HULL INTEGRITY',
+        evasionTooltip: 'Evasion Chance (Engines Power & Pilot Crew)',
+        shieldTooltip: 'Multi-layer Energy Shields',
+        scrapTooltip: 'Scrap (Upgrades & Currency)',
+        fuelTooltip: 'FTL Jump Fuel',
+        missilesTooltip: 'Armor-piercing Missiles',
+        soundTooltip: 'Mute / Unmute Sound',
+        btnUpgrades: 'Upgrades',
+        btnMap: 'Sector Map',
+        pauseBanner: '⏸ TACTICAL PAUSE - [SPACE]',
+        doorsOpen: 'Open All Doors',
+        doorsClose: 'Close All Doors',
+        doorsVent: 'Vent Airlocks (Vacuum)',
+        hintPause: 'Pause',
+        hintTarget: 'Target',
+        hintAutofire: 'Autofire',
+        hintVent: 'Vent Airlocks',
+        hintMap: 'Map',
+        hintUpgrades: 'Upgrades',
+        reactorHeader: 'Reactor Power',
+        weaponsTitle: 'WEAPONS CONTROL ARRAY',
+        autofireBtn: (on) => `Autofire: ${on ? 'ON' : 'OFF'}`,
+        crewTitle: 'Crew Roster',
+        modalMapTitle: '🌌 GALAXY BEACON NAVIGATION',
+        mapLegendRed: 'Rebel Fleet Warning Line',
+        mapLegendCur: 'Current Position',
+        mapLegendJump: 'Reachable Beacon',
+        mapLegendNebula: 'Nebula (50% Fleet Delay)',
+        mapLegendFuel: '1 Fuel Cost / Jump',
+        upgradesTitle: '🛠️ SHIP SUBSYSTEMS & REACTOR UPGRADES',
+        lblUpgradesScrap: 'Current Scrap',
+        lblUpgradesReactor: 'Reactor Power',
+        upgReactorTitle: 'Reactor Power Upgrade',
+        upgReactorDesc: 'Expands total reactor power capacity by +1 bar.',
+        upgBtnInstall: 'Install',
+        upgBtnUpgrade: 'Upgrade',
+        storeTitle: '🏪 FEDERATION OUTPOST STORE',
+        lblStoreScrap: 'Current Scrap',
+        lblStoreHull: 'Hull Status',
+        storeCatRepairs: 'Hull Repair & Munitions',
+        storeCatWeapons: 'Weapons Black Market',
+        storeCatCrew: 'Mercenary Recruitment',
+        storeRepairName: 'Emergency Hull Repair (+5 HULL)',
+        storeRepairDesc: 'Restores damaged ship hull plating.',
+        storeFuelName: 'FTL Fuel Cell (+3)',
+        storeFuelDesc: 'Essential high-density fuel for FTL jumps.',
+        storeMissileName: 'Missile Ammo Pack (+4)',
+        storeMissileDesc: 'Replenishes armor-piercing tactical missiles.',
+        storeBtnRepair: '15 ⚙️ Repair',
+        storeBtnFuel: '9 ⚙️ Buy',
+        storeBtnMissiles: '14 ⚙️ Buy',
+        storeBtnEquip: (cost) => `${cost} ⚙️ Equip`,
+        storeBtnHire: (cost) => `${cost} ⚙️ Recruit`,
+        startTitle: 'VOID STRIDER',
+        startSubtitle: 'THE LAST BASTION',
+        startDesc: 'The Federation has fallen. You command the prototype cruiser Aegis-7 carrying vital encrypted rebel telemetry.<br>Punch through the rebel blockade across 8 sectors and reach Federation Command!',
+        btnStartRun: 'Launch Mission',
+        btnContinueRun: 'Continue Run',
+        shipApproved: 'Flight Authorized',
+        shipLocked: '🔒 Locked (Defeat Flagship to Unlock)',
+        gameOverDefeatTitle: '💀 SHIP DESTROYED (GAME OVER)',
+        gameOverDefeatDesc: 'Hull integrity collapsed. Your ship was lost to the void of space...',
+        gameOverVictoryTitle: '🏆 SAVIOR OF THE FEDERATION (VICTORY)',
+        gameOverVictoryDesc: 'The Rebel Flagship has been annihilated! You delivered the data to Command and saved the Federation!',
+        statFinalSector: 'Sector Reached',
+        statKills: 'Ships Destroyed',
+        statScrap: 'Total Scrap Salvaged',
+        statBeacons: 'Beacons Explored',
+        btnRestartRun: 'Launch New Journey',
+        sysShields: 'Shields',
+        sysEngines: 'Engines',
+        sysWeapons: 'Weapons Control',
+        sysOxygen: 'Life Support (Oxygen)',
+        sysMedbay: 'Medbay',
+        sysPiloting: 'Piloting (Helm)',
+        sysShortShields: 'Shields',
+        sysShortEngines: 'Engines',
+        sysShortWeapons: 'Weapons',
+        sysShortOxygen: 'Oxygen',
+        sysShortMedbay: 'Medbay',
+        sysShortPiloting: 'Helm',
+        sectorNames: [
+          'Federation Frontier', 'Civilian Trade Route', 'Engi Research Sector',
+          'Pirate Lawless Space', 'Mantis War Sector', 'Rock Asteroid Belt',
+          'Rebel Fleet Vanguard', 'Last Bastion (FINAL BOSS)'
+        ],
+        nodeCombat: 'Hostile Ship',
+        nodeDistress: 'Distress Beacon',
+        nodeStore: 'Supply Outpost',
+        nodeEvent: 'Unknown Signal',
+        nodeNebula: 'Nebula Cloud',
+        nodeExit: 'Sector Warp Gate',
+        nodeBoss: 'Rebel Flagship',
+        nodeStart: 'Arrival Beacon',
+        txtMiss: 'MISS!',
+        txtEvaded: 'EVADED!',
+        txtShieldHit: 'Shield Hit',
+        txtShieldAbsorb: 'Shield Absorbed',
+        txtSuperShieldHit: 'Super Shield -1',
+        txtFireStarted: 'Fire Started!',
+        txtBreachStarted: 'Hull Breach (Vacuum)!',
+        txtHullDamaged: (dmg) => `-${dmg} Hull Damage`,
+        txtEnemyHullDamaged: (dmg) => `-${dmg} HULL`,
+        txtSysDamaged: 'System Damaged!',
+        txtTargetSet: (r) => `Targeting: ${r}`,
+        txtMoveOrder: (c) => `Move Order: ${c}`,
+        txtSuffocating: 'Suffocating in Vacuum!',
+        txtBoarderDead: 'Boarder Eliminated!',
+        txtBoardersInbound: '⚠️ Enemy Boarders Infiltrating Ship!',
+        txtAirlockOpen: '⚠️ Emergency Venting Active!',
+        txtAirlockClose: 'Airlocks Sealed',
+        txtNoFuel: 'Out of Fuel!',
+        txtNoFuelDesc: 'Fuel tanks depleted! Must wait or broadcast distress beacon.',
+        txtInCombat: 'In Combat!',
+        txtInCombatDesc: 'FTL jump unavailable while engaged with hostile vessel.',
+        txtFleetAmbush: 'Rebel Fleet Ambush!',
+        txtFleetAmbushDesc: 'Overtaken by the rebel pursuit fleet! Elite battlecruiser incoming!',
+        txtBossArrival: '⚠️ Rebel Flagship Encountered!',
+        txtBossArrivalDesc: 'The Rebel Flagship approaches! The fate of the entire Federation rests in this battle!',
+        txtBossPhase2: 'Flagship Phase 1 Defeated!',
+        txtBossPhase2Desc: 'Flagship retreats and initializes autonomous drone support protocols!',
+        txtBossPhase3: 'Flagship Phase 2 Defeated!',
+        txtBossPhase3Desc: 'Flagship reactor overcharges, projecting a Zoltan Super Shield barrier!',
+        txtBattleWon: 'Victory!',
+        txtBattleWonDesc: (s, f, m) => `Enemy ship destroyed!\nSalvaged: +${s} Scrap, +${f} Fuel, +${m} Missiles`,
+        txtSectorEntry: (sec, name) => `Sector ${sec} Reached\nArrived at ${name}. Maintain high alert.`,
+        txtCrewDied: (name) => `${name} suffocated!`,
+        txtNoMissile: 'Out of Missiles!'
+      }
+    };
+
+    let currentLang = 'ko';
+    try {
+      const savedLang = localStorage.getItem('void_strider_lang');
+      if (savedLang === 'en' || savedLang === 'ko') currentLang = savedLang;
+    } catch (e) {}
+
+    function t(key, ...args) {
+      const dict = I18N[currentLang] || I18N.ko;
+      const val = dict[key] !== undefined ? dict[key] : I18N.ko[key];
+      if (typeof val === 'function') {
+        return val(...args);
+      }
+      return val !== undefined ? val : key;
+    }
+
+    function toggleLanguage() {
+      currentLang = currentLang === 'ko' ? 'en' : 'ko';
+      try {
+        localStorage.setItem('void_strider_lang', currentLang);
+      } catch (e) {}
+      updateStaticTexts();
+      updateHUD();
+      if (document.getElementById('modal-upgrades').classList.contains('active')) renderUpgrades();
+      if (document.getElementById('modal-store').classList.contains('active')) openStoreModal();
+      if (document.getElementById('modal-map').classList.contains('active')) renderMap();
+      if (document.getElementById('modal-start').classList.contains('active')) renderStartScreen();
+    }
+
+    function updateStaticTexts() {
+      document.getElementById('hud-lang-txt').textContent = t('langDisplay');
+      document.getElementById('hud-hull-label').textContent = t('hullLabel');
+      document.getElementById('badge-evasion').title = t('evasionTooltip');
+      document.getElementById('badge-shields').title = t('shieldTooltip');
+      document.getElementById('badge-scrap').title = t('scrapTooltip');
+      document.getElementById('badge-fuel').title = t('fuelTooltip');
+      document.getElementById('badge-missiles').title = t('missilesTooltip');
+      document.getElementById('btn-sound-toggle').title = t('soundTooltip');
+      document.getElementById('btn-upg-txt').textContent = t('btnUpgrades');
+      document.getElementById('btn-map-txt').textContent = t('btnMap');
+      document.getElementById('pause-banner').textContent = t('pauseBanner');
+      document.getElementById('btn-doors-open').textContent = t('doorsOpen');
+      document.getElementById('btn-doors-close').textContent = t('doorsClose');
+      document.getElementById('btn-doors-vent').textContent = t('doorsVent');
+
+      document.getElementById('hint-txt-pause').textContent = t('hintPause');
+      document.getElementById('hint-txt-target').textContent = t('hintTarget');
+      document.getElementById('hint-txt-autofire').textContent = t('hintAutofire');
+      document.getElementById('hint-txt-vent').textContent = t('hintVent');
+      document.getElementById('hint-txt-map').textContent = t('hintMap');
+      document.getElementById('hint-txt-upg').textContent = t('hintUpgrades');
+
+      document.getElementById('hud-reactor-title').textContent = t('reactorHeader');
+      document.getElementById('hud-weapons-title').textContent = t('weaponsTitle');
+      document.getElementById('hud-crew-title').textContent = t('crewTitle');
+
+      document.getElementById('map-modal-title').textContent = t('modalMapTitle');
+      document.getElementById('legend-red').textContent = t('mapLegendRed');
+      document.getElementById('legend-cur').textContent = t('mapLegendCur');
+      document.getElementById('legend-jump').textContent = t('mapLegendJump');
+      document.getElementById('legend-nebula').textContent = t('mapLegendNebula');
+      document.getElementById('legend-fuel').textContent = t('mapLegendFuel');
+
+      document.getElementById('upg-modal-title').textContent = t('upgradesTitle');
+      document.getElementById('lbl-upg-scrap').textContent = t('lblUpgradesScrap');
+      document.getElementById('lbl-upg-reactor').textContent = t('lblUpgradesReactor');
+
+      document.getElementById('store-modal-title').textContent = t('storeTitle');
+      document.getElementById('lbl-store-scrap').textContent = t('lblStoreScrap');
+      document.getElementById('lbl-store-hull').textContent = t('lblStoreHull');
+
+      document.getElementById('start-hero-title').textContent = t('startTitle');
+      document.getElementById('start-hero-sub').textContent = t('startSubtitle');
+      document.getElementById('start-hero-desc').innerHTML = t('startDesc');
+      document.getElementById('btn-start-run').textContent = t('btnStartRun');
+      document.getElementById('btn-continue-run').textContent = t('btnContinueRun');
+
+      document.getElementById('lbl-stat-sector').textContent = t('statFinalSector');
+      document.getElementById('lbl-stat-kills').textContent = t('statKills');
+      document.getElementById('lbl-stat-scrap').textContent = t('statScrap');
+      document.getElementById('lbl-stat-beacons').textContent = t('statBeacons');
+      document.getElementById('btn-restart-run').textContent = t('btnRestartRun');
+    }
 
     // --------------------------------------------------------------------------
     // 1. PROCEDURAL SOUND SYNTHESIZER (Web Audio API)
@@ -1267,7 +1632,7 @@
 
           this.bgOsc = this.ctx.createOscillator();
           this.bgOsc.type = 'sawtooth';
-          this.bgOsc.frequency.setValueAtTime(55, this.ctx.currentTime); // 55Hz deep space bass
+          this.bgOsc.frequency.setValueAtTime(55, this.ctx.currentTime);
 
           const filter = this.ctx.createBiquadFilter();
           filter.type = 'lowpass';
@@ -1371,22 +1736,6 @@
         osc.stop(now + 0.31);
       }
 
-      playIonHit() {
-        if (!this.ctx || this.muted) return;
-        const now = this.ctx.currentTime;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(880, now);
-        osc.frequency.exponentialRampToValueAtTime(220, now + 0.25);
-        gain.gain.setValueAtTime(0.2, now);
-        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(now);
-        osc.stop(now + 0.26);
-      }
-
       playAlarm() {
         if (!this.ctx || this.muted) return;
         const now = this.ctx.currentTime;
@@ -1443,7 +1792,8 @@
     const WEAPON_TYPES = {
       BURST_LASER_1: {
         id: 'BURST_LASER_1',
-        name: '듀얼 레이저 I',
+        name_ko: '듀얼 레이저 I',
+        name_en: 'Dual Lasers I',
         type: 'laser',
         powerReq: 1,
         cooldown: 9.0,
@@ -1453,11 +1803,13 @@
         fireChance: 0.15,
         breachChance: 0.05,
         cost: 25,
-        desc: '기본 2연발 레이저. 적 실드를 깎고 선체를 타격합니다.'
+        desc_ko: '기본 2연발 레이저. 적 실드를 깎고 선체를 타격합니다.',
+        desc_en: 'Standard 2-shot laser. Strips shields and damages hull.'
       },
       BURST_LASER_2: {
         id: 'BURST_LASER_2',
-        name: '버스트 레이저 II',
+        name_ko: '버스트 레이저 II',
+        name_en: 'Burst Laser II',
         type: 'laser',
         powerReq: 2,
         cooldown: 11.5,
@@ -1467,11 +1819,13 @@
         fireChance: 0.2,
         breachChance: 0.1,
         cost: 65,
-        desc: '3연발 레이저. 뛰어난 전력비로 실드를 빠르게 벗겨냅니다.'
+        desc_ko: '3연발 레이저. 뛰어난 전력비로 실드를 빠르게 벗겨냅니다.',
+        desc_en: '3-shot burst laser. Exceptional efficiency against enemy shields.'
       },
       HEAVY_LASER: {
         id: 'HEAVY_LASER',
-        name: '헤비 레이저 I',
+        name_ko: '헤비 레이저 I',
+        name_en: 'Heavy Laser I',
         type: 'laser',
         powerReq: 2,
         cooldown: 12.0,
@@ -1481,11 +1835,13 @@
         fireChance: 0.45,
         breachChance: 0.35,
         cost: 50,
-        desc: '단발 2데미지. 적 선내 화재 및 선체 균열 유발 확률이 매우 높습니다.'
+        desc_ko: '단발 2데미지. 적 선내 화재 및 선체 균열 유발 확률이 매우 높습니다.',
+        desc_en: 'Heavy 2-damage bolt. High fire and hull breach probability.'
       },
       ARTEMIS_MISSILE: {
         id: 'ARTEMIS_MISSILE',
-        name: '아르테미스 미사일',
+        name_ko: '아르테미스 미사일',
+        name_en: 'Artemis Missile',
         type: 'missile',
         powerReq: 1,
         cooldown: 10.5,
@@ -1495,11 +1851,13 @@
         fireChance: 0.3,
         breachChance: 0.25,
         cost: 40,
-        desc: '방어막을 무시하고 적의 핵심 룸을 정밀 타격합니다 (미사일 1 소모).'
+        desc_ko: '방어막을 무시하고 적의 핵심 룸을 정밀 타격합니다 (미사일 1 소모).',
+        desc_en: 'Ignores shields to strike target room directly (costs 1 missile).'
       },
       BREACH_MISSILE: {
         id: 'BREACH_MISSILE',
-        name: '균열 파쇄 미사일',
+        name_ko: '균열 파쇄 미사일',
+        name_en: 'Breach Missile',
         type: 'missile',
         powerReq: 3,
         cooldown: 16.5,
@@ -1509,11 +1867,13 @@
         fireChance: 0.5,
         breachChance: 1.0,
         cost: 80,
-        desc: '방어막 무시 4데미지 및 100% 선체 균열(진공 유발)을 일으키는 결전 미사일.'
+        desc_ko: '방어막 무시 4데미지 및 100% 선체 균열(진공 유발)을 일으키는 결전 미사일.',
+        desc_en: '4 damage piercing missile causing guaranteed hull breaches.'
       },
       ION_BLAST_1: {
         id: 'ION_BLAST_1',
-        name: '이온 블래스터 I',
+        name_ko: '이온 블래스터 I',
+        name_en: 'Ion Blast I',
         type: 'ion',
         powerReq: 1,
         cooldown: 7.5,
@@ -1524,11 +1884,13 @@
         breachChance: 0.0,
         ionDamage: 1,
         cost: 35,
-        desc: '실드 1겹을 제거하거나, 적 시스템을 5초간 마비(동력 차단)시킵니다.'
+        desc_ko: '실드 1겹을 제거하거나, 적 시스템을 5초간 마비(동력 차단)시킵니다.',
+        desc_en: 'Disables 1 shield bubble or locks system power for 5 seconds.'
       },
       ION_BLAST_2: {
         id: 'ION_BLAST_2',
-        name: '연사 이온 캐논',
+        name_ko: '연사 이온 캐논',
+        name_en: 'Ion Blast II',
         type: 'ion',
         powerReq: 2,
         cooldown: 4.5,
@@ -1539,11 +1901,13 @@
         breachChance: 0.0,
         ionDamage: 1,
         cost: 60,
-        desc: '초고속 연사로 적 실드 또는 무기실을 무력화할 수 있습니다.'
+        desc_ko: '초고속 연사로 적 실드 또는 무기실을 무력화할 수 있습니다.',
+        desc_en: 'Rapid-firing ion cannon capable of permanently keeping systems offline.'
       },
       HALBERD_BEAM: {
         id: 'HALBERD_BEAM',
-        name: '할버드 절단 빔',
+        name_ko: '할버드 절단 빔',
+        name_en: 'Halberd Beam',
         type: 'beam',
         powerReq: 3,
         cooldown: 14.5,
@@ -1553,46 +1917,64 @@
         fireChance: 0.25,
         breachChance: 0.0,
         cost: 75,
-        desc: '적 실드가 벗겨진 순간 다수의 룸을 일도양단하는 강력한 절단 빔.'
+        desc_ko: '적 실드가 벗겨진 순간 다수의 룸을 일도양단하는 강력한 절단 빔.',
+        desc_en: 'Sweeps across multiple enemy rooms slicing hull once shields fall.'
       }
     };
+
+    function getWeaponName(w) {
+      if (!w) return '';
+      return currentLang === 'en' ? (w.name_en || w.name) : (w.name_ko || w.name);
+    }
+
+    function getWeaponDesc(w) {
+      if (!w) return '';
+      return currentLang === 'en' ? (w.desc_en || w.desc) : (w.desc_ko || w.desc);
+    }
 
     // --------------------------------------------------------------------------
     // 3. CREW RACES & DEFINITIONS
     // --------------------------------------------------------------------------
     const RACES = {
       human: {
-        name: '인간',
+        name_ko: '인간',
+        name_en: 'Human',
         color: '#f39c12',
         maxHp: 100,
         repairSpeed: 1.0,
         combatDamage: 1.0,
         moveSpeed: 1.0,
         cost: 40,
-        desc: '균형 잡힌 능력치의 연방 정규군 승무원.'
+        desc_ko: '균형 잡힌 능력치의 연방 정규군 승무원.',
+        desc_en: 'Well-rounded Federation standard crew member.'
       },
       engi: {
-        name: '엔지니어',
+        name_ko: '엔지니어',
+        name_en: 'Engi',
         color: '#3498db',
         maxHp: 70,
         repairSpeed: 2.0,
         combatDamage: 0.5,
         moveSpeed: 1.0,
         cost: 45,
-        desc: '나노머신 신체로 2배 빠른 수리 능력을 지녔으나 백병전은 취약합니다.'
+        desc_ko: '나노머신 신체로 2배 빠른 수리 능력을 지녔으나 백병전은 취약합니다.',
+        desc_en: '2x repair speed using nanites; weaker combat strength.'
       },
       mantis: {
-        name: '맨티스',
+        name_ko: '맨티스',
+        name_en: 'Mantis',
         color: '#2ecc71',
         maxHp: 100,
         repairSpeed: 0.5,
         combatDamage: 1.5,
         moveSpeed: 1.25,
         cost: 50,
-        desc: '사마귀형 외계 전사. 압도적인 백병전 공격력과 기동력을 지닙니다.'
+        desc_ko: '사마귀형 외계 전사. 압도적인 백병전 공격력과 기동력을 지닙니다.',
+        desc_en: 'Fearsome warrior race; 1.5x combat damage and swift movement.'
       },
       rockman: {
-        name: '락맨',
+        name_ko: '락맨',
+        name_en: 'Rockman',
         color: '#e67e22',
         maxHp: 150,
         repairSpeed: 1.0,
@@ -1600,10 +1982,12 @@
         moveSpeed: 0.75,
         fireImmune: true,
         cost: 55,
-        desc: '암석 피부로 체력이 150이며, 화재 피해에 완전 면역입니다.'
+        desc_ko: '암석 피부로 체력이 150이며, 화재 피해에 완전 면역입니다.',
+        desc_en: '150 HP rocky constitution; completely immune to fire.'
       },
       zoltan: {
-        name: '졸탄',
+        name_ko: '졸탄',
+        name_en: 'Zoltan',
         color: '#f1c40f',
         maxHp: 70,
         repairSpeed: 1.0,
@@ -1611,9 +1995,16 @@
         moveSpeed: 1.0,
         providesPower: true,
         cost: 50,
-        desc: '생체 발전 생명체. 자신이 위치한 룸에 무료 녹색 전력 +1을 상시 공급합니다.'
+        desc_ko: '생체 발전 생명체. 자신이 위치한 룸에 무료 녹색 전력 +1을 상시 공급합니다.',
+        desc_en: 'Bio-electric organism supplying +1 free reactor bar to occupied room.'
       }
     };
+
+    function getRaceName(raceKey) {
+      const r = RACES[raceKey];
+      if (!r) return raceKey;
+      return currentLang === 'en' ? r.name_en : r.name_ko;
+    }
 
     // --------------------------------------------------------------------------
     // 4. SHIP LAYOUTS & UNLOCKS
@@ -1621,8 +2012,10 @@
     const SHIP_CLASSES = {
       kestrel: {
         id: 'kestrel',
-        name: '케스트렐 순양함 (The Kestrel)',
-        desc: '연방 표준형 다목적 순양함. 균형 잡힌 초기 무장과 견고한 선체.',
+        name_ko: '케스트렐 순양함 (The Kestrel)',
+        name_en: 'The Kestrel Cruiser',
+        desc_ko: '연방 표준형 다목적 순양함. 균형 잡힌 초기 무장과 견고한 선체.',
+        desc_en: 'Standard Federation all-rounder cruiser with balanced armament.',
         unlocked: true,
         maxHull: 30,
         reactor: 8,
@@ -1644,12 +2037,12 @@
           { name: '크사르', race: 'mantis', room: 'weapons' }
         ],
         rooms: [
-          { id: 'piloting', label: '조종실', sys: 'piloting', x: 260, y: 130, w: 50, h: 60 },
-          { id: 'shields', label: '쉴드실', sys: 'shields', x: 190, y: 90, w: 60, h: 60 },
-          { id: 'weapons', label: '무기실', sys: 'weapons', x: 190, y: 170, w: 60, h: 60 },
-          { id: 'oxygen', label: '산소실', sys: 'oxygen', x: 120, y: 90, w: 60, h: 50 },
-          { id: 'medbay', label: '의료실', sys: 'medbay', x: 120, y: 180, w: 60, h: 50 },
-          { id: 'engines', label: '엔진실', sys: 'engines', x: 50, y: 125, w: 60, h: 70 }
+          { id: 'piloting', label_ko: '조종실', label_en: 'Pilot', sys: 'piloting', x: 260, y: 130, w: 50, h: 60 },
+          { id: 'shields', label_ko: '쉴드실', label_en: 'Shields', sys: 'shields', x: 190, y: 90, w: 60, h: 60 },
+          { id: 'weapons', label_ko: '무기실', label_en: 'Weapons', sys: 'weapons', x: 190, y: 170, w: 60, h: 60 },
+          { id: 'oxygen', label_ko: '산소실', label_en: 'Oxygen', sys: 'oxygen', x: 120, y: 90, w: 60, h: 50 },
+          { id: 'medbay', label_ko: '의료실', label_en: 'Medbay', sys: 'medbay', x: 120, y: 180, w: 60, h: 50 },
+          { id: 'engines', label_ko: '엔진실', label_en: 'Engines', sys: 'engines', x: 50, y: 125, w: 60, h: 70 }
         ],
         doors: [
           { id: 'd1', r1: 'engines', r2: 'oxygen', x: 110, y: 120, vertical: true, open: false, isAir: false },
@@ -1664,8 +2057,10 @@
       },
       torus: {
         id: 'torus',
-        name: '엔지 보텍스 (The Torus)',
-        desc: '이온 병기 및 첨단 나노 수리 특화 함선. 엔지 승무원 2명 탑승.',
+        name_ko: '엔지 보텍스 (The Torus)',
+        name_en: 'The Torus (Engi Cruiser)',
+        desc_ko: '이온 병기 및 첨단 나노 수리 특화 함선. 엔지 승무원 2명 탑승.',
+        desc_en: 'Ion weaponry and nanite repair specialist ship with 2 Engi crew.',
         unlocked: false,
         maxHull: 30,
         reactor: 9,
@@ -1687,12 +2082,12 @@
           { name: '테라', race: 'human', room: 'weapons' }
         ],
         rooms: [
-          { id: 'piloting', label: '조종실', sys: 'piloting', x: 260, y: 130, w: 50, h: 60 },
-          { id: 'shields', label: '쉴드실', sys: 'shields', x: 190, y: 90, w: 60, h: 60 },
-          { id: 'weapons', label: '무기실', sys: 'weapons', x: 190, y: 170, w: 60, h: 60 },
-          { id: 'oxygen', label: '산소실', sys: 'oxygen', x: 120, y: 90, w: 60, h: 50 },
-          { id: 'medbay', label: '의료실', sys: 'medbay', x: 120, y: 180, w: 60, h: 50 },
-          { id: 'engines', label: '엔진실', sys: 'engines', x: 50, y: 125, w: 60, h: 70 }
+          { id: 'piloting', label_ko: '조종실', label_en: 'Pilot', sys: 'piloting', x: 260, y: 130, w: 50, h: 60 },
+          { id: 'shields', label_ko: '쉴드실', label_en: 'Shields', sys: 'shields', x: 190, y: 90, w: 60, h: 60 },
+          { id: 'weapons', label_ko: '무기실', label_en: 'Weapons', sys: 'weapons', x: 190, y: 170, w: 60, h: 60 },
+          { id: 'oxygen', label_ko: '산소실', label_en: 'Oxygen', sys: 'oxygen', x: 120, y: 90, w: 60, h: 50 },
+          { id: 'medbay', label_ko: '의료실', label_en: 'Medbay', sys: 'medbay', x: 120, y: 180, w: 60, h: 50 },
+          { id: 'engines', label_ko: '엔진실', label_en: 'Engines', sys: 'engines', x: 50, y: 125, w: 60, h: 70 }
         ],
         doors: [
           { id: 'd1', r1: 'engines', r2: 'oxygen', x: 110, y: 120, vertical: true, open: false, isAir: false },
@@ -1707,7 +2102,6 @@
       }
     };
 
-    // Load unlocks
     try {
       const savedUnlocks = localStorage.getItem('void_strider_unlocks');
       if (savedUnlocks) {
@@ -1739,7 +2133,7 @@
         this.rooms = [];
         this.doors = [];
         this.crew = [];
-        this.boarders = []; // Enemy invaders inside player ship
+        this.boarders = [];
         this.weapons = [];
         this.autofire = false;
 
@@ -1766,12 +2160,12 @@
         this.scrap = shipDef.scrap;
 
         this.systems = {
-          shields: { ...shipDef.systems.shields, maxLevel: 8, ionTimer: 0, damage: 0, bubbleCount: 0, rechargeProgress: 0 },
-          engines: { ...shipDef.systems.engines, maxLevel: 8, ionTimer: 0, damage: 0 },
-          weapons: { ...shipDef.systems.weapons, maxLevel: 8, ionTimer: 0, damage: 0 },
-          oxygen: { ...shipDef.systems.oxygen, maxLevel: 3, ionTimer: 0, damage: 0 },
-          medbay: { ...shipDef.systems.medbay, maxLevel: 3, ionTimer: 0, damage: 0 },
-          piloting: { ...shipDef.systems.piloting, maxLevel: 3, ionTimer: 0, damage: 0 }
+          shields: { level: 2, power: 2, maxLevel: 8, ionTimer: 0, damage: 0, bubbleCount: 0, rechargeProgress: 0 },
+          engines: { level: 2, power: 2, maxLevel: 8, ionTimer: 0, damage: 0 },
+          weapons: { level: 3, power: 3, maxLevel: 8, ionTimer: 0, damage: 0 },
+          oxygen: { level: 1, power: 1, maxLevel: 3, ionTimer: 0, damage: 0 },
+          medbay: { level: 1, power: 0, maxLevel: 3, ionTimer: 0, damage: 0 },
+          piloting: { level: 1, power: 0, maxLevel: 3, ionTimer: 0, damage: 0 }
         };
 
         this.rooms = shipDef.rooms.map(r => ({
@@ -1826,7 +2220,6 @@
         const s = this.systems[sysKey];
         if (!s || s.ionTimer > 0) return 0;
         let p = Math.max(0, s.power - s.damage);
-        // Zoltan crew member in room adds +1 free green power bar
         const room = this.rooms.find(r => r.sys === sysKey);
         if (room) {
           const zoltans = this.crew.filter(c => c.currentRoom === room.id && c.race === 'zoltan' && c.hp > 0);
@@ -1853,7 +2246,6 @@
         if (!pilotSys || pilotSys.damage >= pilotSys.level) return 0;
 
         const pilotCrew = this.crew.find(c => c.currentRoom === pilotRoom.id && c.hp > 0);
-        // Requires pilot or upgraded autopilot
         if (!pilotCrew && pilotSys.level < 2) return 0;
 
         const enginePower = this.getEffectiveSystemPower('engines');
@@ -1866,7 +2258,6 @@
         return Math.min(55, baseEvasion);
       }
 
-      // Save state to LocalStorage
       saveToStorage() {
         try {
           const saveData = {
@@ -1890,9 +2281,7 @@
             currentBeaconId: this.currentBeacon ? this.currentBeacon.id : 1
           };
           localStorage.setItem('void_strider_active_run', JSON.stringify(saveData));
-        } catch (e) {
-          console.warn('Save failed', e);
-        }
+        } catch (e) {}
       }
 
       loadFromStorage() {
@@ -1926,7 +2315,6 @@
           this.updateShieldBubbles();
           return true;
         } catch (e) {
-          console.error('Failed to load save', e);
           return false;
         }
       }
@@ -1957,17 +2345,22 @@
       }
 
       initStandard(sector) {
-        const names = [
+        const names_ko = [
           '반란군 정찰정', '해적 요격기', '맨티스 강습함', '락맨 순찰선',
           '슬러그 경순양함', '반란군 전투초계함', '용병 중순양함'
         ];
-        this.name = names[Math.min(names.length - 1, sector - 1 + Math.floor(Math.random() * 2))];
+        const names_en = [
+          'Rebel Scout', 'Pirate Interceptor', 'Mantis Assault Craft', 'Rock Patrol',
+          'Slug Light Cruiser', 'Rebel Heavy Escort', 'Mercenary Cruiser'
+        ];
+        const idx = Math.min(names_ko.length - 1, sector - 1 + Math.floor(Math.random() * 2));
+        this.name_ko = names_ko[idx];
+        this.name_en = names_en[idx];
 
         const baseHp = 8 + sector * 2 + Math.floor(Math.random() * 3);
         this.maxHull = baseHp;
         this.hull = baseHp;
 
-        // Shields scale with sector
         const shieldPower = Math.min(8, Math.max(0, Math.floor((sector + 1) / 2) * 2));
         this.systems = {
           shields: { level: Math.max(2, shieldPower), power: shieldPower, damage: 0, ionTimer: 0, bubbleCount: Math.floor(shieldPower / 2), maxBubbles: Math.floor(shieldPower / 2), rechargeProgress: 0 },
@@ -1976,7 +2369,6 @@
           piloting: { level: 1, power: 1, damage: 0, ionTimer: 0 }
         };
 
-        // Enemy weapons
         const wPool = ['BURST_LASER_1'];
         if (sector >= 2) wPool.push('HEAVY_LASER');
         if (sector >= 3) wPool.push('ARTEMIS_MISSILE');
@@ -1995,31 +2387,24 @@
         }));
 
         this.rooms = [
-          { id: 'shields', label: '쉴드', sys: 'shields', x: 500, y: 100, w: 55, h: 55, o2: 100, fire: 0, breach: 0 },
-          { id: 'weapons', label: '무기', sys: 'weapons', x: 500, y: 170, w: 55, h: 55, o2: 100, fire: 0, breach: 0 },
-          { id: 'engines', label: '엔진', sys: 'engines', x: 575, y: 170, w: 55, h: 55, o2: 100, fire: 0, breach: 0 },
-          { id: 'piloting', label: '조종', sys: 'piloting', x: 575, y: 100, w: 55, h: 55, o2: 100, fire: 0, breach: 0 }
-        ];
-
-        this.crew = [
-          { name: '반란군 승무원', race: 'human', hp: 100, currentRoom: 'piloting' },
-          { name: '반란군 기술병', race: 'human', hp: 100, currentRoom: 'shields' }
+          { id: 'shields', label_ko: '쉴드', label_en: 'Shields', sys: 'shields', x: 500, y: 100, w: 55, h: 55, o2: 100, fire: 0, breach: 0 },
+          { id: 'weapons', label_ko: '무기', label_en: 'Weapons', sys: 'weapons', x: 500, y: 170, w: 55, h: 55, o2: 100, fire: 0, breach: 0 },
+          { id: 'engines', label_ko: '엔진', label_en: 'Engines', sys: 'engines', x: 575, y: 170, w: 55, h: 55, o2: 100, fire: 0, breach: 0 },
+          { id: 'piloting', label_ko: '조종', label_en: 'Pilot', sys: 'piloting', x: 575, y: 100, w: 55, h: 55, o2: 100, fire: 0, breach: 0 }
         ];
 
         this.scrapReward = 16 + sector * 12 + Math.floor(Math.random() * 10);
         this.fuelReward = Math.random() < 0.7 ? Math.floor(Math.random() * 3) + 1 : 0;
         this.missileReward = Math.random() < 0.6 ? Math.floor(Math.random() * 2) + 1 : 0;
 
-        // Chance of boarding attack for Mantis ships or Sector 5+
-        if ((this.name.includes('맨티스') || sector >= 5) && Math.random() < 0.5) {
-          setTimeout(() => {
-            spawnEnemyBoarders(2);
-          }, 4000);
+        if ((this.name_ko.includes('맨티스') || sector >= 5) && Math.random() < 0.5) {
+          setTimeout(() => { spawnEnemyBoarders(2); }, 4000);
         }
       }
 
       initBoss(phase) {
-        this.name = `반란군 플래그십 (REBEL FLAGSHIP - PHASE ${phase})`;
+        this.name_ko = `반란군 플래그십 (PHASE ${phase})`;
+        this.name_en = `Rebel Flagship (PHASE ${phase})`;
         this.maxHull = 26;
         this.hull = 26;
 
@@ -2037,34 +2422,28 @@
           { ...WEAPON_TYPES.HALBERD_BEAM, charge: 0, targetRoomId: 'piloting' }
         ];
 
-        // Zoltan Super Shield in Phase 3
         this.superShield = phase === 3 ? 12 : 0;
         this.maxSuperShield = phase === 3 ? 12 : 0;
 
         this.rooms = [
-          { id: 'shields', label: '대형쉴드실', sys: 'shields', x: 480, y: 130, w: 60, h: 60, o2: 100, fire: 0, breach: 0 },
-          { id: 'weapons', label: '주포관제실', sys: 'weapons', x: 555, y: 70, w: 60, h: 60, o2: 100, fire: 0, breach: 0 },
-          { id: 'missiles', label: '미사일포대', sys: 'weapons', x: 555, y: 190, w: 60, h: 60, o2: 100, fire: 0, breach: 0 },
-          { id: 'engines', label: '중력엔진실', sys: 'engines', x: 630, y: 130, w: 60, h: 60, o2: 100, fire: 0, breach: 0 },
-          { id: 'piloting', label: '사령조종탑', sys: 'piloting', x: 405, y: 130, w: 60, h: 60, o2: 100, fire: 0, breach: 0 }
-        ];
-
-        this.crew = [
-          { name: '반란군 사령관', race: 'human', hp: 120, currentRoom: 'piloting' },
-          { name: '호위대장', race: 'mantis', hp: 120, currentRoom: 'shields' },
-          { name: '수석엔지니어', race: 'engi', hp: 90, currentRoom: 'weapons' }
+          { id: 'shields', label_ko: '대형쉴드실', label_en: 'Shields', sys: 'shields', x: 480, y: 130, w: 60, h: 60, o2: 100, fire: 0, breach: 0 },
+          { id: 'weapons', label_ko: '주포관제실', label_en: 'Weapons', sys: 'weapons', x: 555, y: 70, w: 60, h: 60, o2: 100, fire: 0, breach: 0 },
+          { id: 'missiles', label_ko: '미사일포대', label_en: 'Missiles', sys: 'weapons', x: 555, y: 190, w: 60, h: 60, o2: 100, fire: 0, breach: 0 },
+          { id: 'engines', label_ko: '중력엔진실', label_en: 'Engines', sys: 'engines', x: 630, y: 130, w: 60, h: 60, o2: 100, fire: 0, breach: 0 },
+          { id: 'piloting', label_ko: '사령조종탑', label_en: 'Helm', sys: 'piloting', x: 405, y: 130, w: 60, h: 60, o2: 100, fire: 0, breach: 0 }
         ];
 
         this.scrapReward = 90;
         this.fuelReward = 4;
         this.missileReward = 5;
 
-        // Phase 2 & 3: Boarding Assault
         if (phase >= 2) {
-          setTimeout(() => {
-            spawnEnemyBoarders(phase === 2 ? 2 : 3);
-          }, 3500);
+          setTimeout(() => { spawnEnemyBoarders(phase === 2 ? 2 : 3); }, 3500);
         }
+      }
+
+      getName() {
+        return currentLang === 'en' ? this.name_en : this.name_ko;
       }
 
       getEffectivePower(sysKey) {
@@ -2082,13 +2461,13 @@
     function spawnEnemyBoarders(count) {
       if (!state.inCombat || state.rooms.length === 0) return;
       sound.playAlarm();
-      addFloatingText(180, 150, '⚠️ 적 강습 분대 선내 침투!', '#ff3355');
+      addFloatingText(180, 150, t('txtBoardersInbound'), '#ff3355');
 
       for (let i = 0; i < count; i++) {
         const randomRoom = state.rooms[Math.floor(Math.random() * state.rooms.length)];
         state.boarders.push({
           id: 'boarder_' + Date.now() + '_' + i,
-          name: '침투 적병',
+          name: currentLang === 'en' ? 'Boarder' : '침투 적병',
           race: 'mantis',
           hp: 100,
           maxHp: 100,
@@ -2114,47 +2493,40 @@
         const types = ['combat', 'combat', 'distress', 'store', 'event', 'nebula'];
         let idCounter = 1;
 
-        // Col 0: Start Node
         this.nodes.push({
           id: idCounter++,
           col: 0,
           yRatio: 0.5,
           type: 'start',
-          label: '도착 비콘',
           visited: true,
           connections: []
         });
 
-        // Cols 1 to 5: Procedural Beacons
         for (let col = 1; col <= 5; col++) {
           const count = 3 + Math.floor(Math.random() * 2);
           for (let i = 0; i < count; i++) {
-            let t = types[Math.floor(Math.random() * types.length)];
-            if (col === 3 && i === 0) t = 'store';
+            let tType = types[Math.floor(Math.random() * types.length)];
+            if (col === 3 && i === 0) tType = 'store';
             this.nodes.push({
               id: idCounter++,
               col: col,
               yRatio: (i + 1) / (count + 1) + (Math.random() * 0.1 - 0.05),
-              type: t,
-              label: this.getNodeLabel(t),
+              type: tType,
               visited: false,
               connections: []
             });
           }
         }
 
-        // Col 6: Exit / Boss
         this.nodes.push({
           id: idCounter++,
           col: 6,
           yRatio: 0.5,
           type: this.sector === 8 ? 'boss' : 'exit',
-          label: this.sector === 8 ? '반란군 총기함' : '다음 섹터 워프',
           visited: false,
           connections: []
         });
 
-        // Interconnect adjacent columns
         for (let col = 0; col < 6; col++) {
           const fromNodes = this.nodes.filter(n => n.col === col);
           const toNodes = this.nodes.filter(n => n.col === col + 1);
@@ -2169,14 +2541,16 @@
         }
       }
 
-      getNodeLabel(t) {
-        switch (t) {
-          case 'combat': return '적 함선 조우';
-          case 'distress': return '조난 신호 발신지';
-          case 'store': return '연방 보급 상점';
-          case 'event': return '미확인 성간 비콘';
-          case 'nebula': return '성운 은신 구역';
-          default: return '비콘';
+      getNodeLabel(node) {
+        switch (node.type) {
+          case 'combat': return t('nodeCombat');
+          case 'distress': return t('nodeDistress');
+          case 'store': return t('nodeStore');
+          case 'event': return t('nodeEvent');
+          case 'nebula': return t('nodeNebula');
+          case 'exit': return t('nodeExit');
+          case 'boss': return t('nodeBoss');
+          default: return t('nodeStart');
         }
       }
     }
@@ -2187,11 +2561,14 @@
     const STORY_EVENTS = [
       {
         id: 'distress_freighter',
-        title: '조난 신호: 해적의 화물선 습격',
-        text: '민간 화물선 한 척이 무장 해적 요격기의 맹렬한 공격을 받고 있습니다! 긴급 구조 통신이 수신됩니다.',
+        title_ko: '조난 신호: 해적의 화물선 습격',
+        title_en: 'Distress Signal: Freighter Under Attack',
+        text_ko: '민간 화물선 한 척이 무장 해적 요격기의 맹렬한 공격을 받고 있습니다! 긴급 구조 통신이 수신됩니다.',
+        text_en: 'A civilian freighter is under heavy fire from armed pirate interceptors! An SOS broadcast crackles through the comms.',
         choices: [
           {
-            text: '화물선을 돕기 위해 해적선과 교전을 개시한다.',
+            text_ko: '화물선을 돕기 위해 해적선과 교전을 개시한다.',
+            text_en: 'Engage the pirate vessel to assist the freighter.',
             action: (gs) => {
               gs.inCombat = true;
               gs.enemy = new EnemyShip(gs.sector);
@@ -2199,53 +2576,61 @@
             }
           },
           {
-            text: '위험을 피하고 조용히 우회한다.',
-            action: (gs) => {
-              closeModal('modal-event');
-            }
+            text_ko: '위험을 피하고 조용히 우회한다.',
+            text_en: 'Avoid risk and quietly jump away.',
+            action: () => closeModal('modal-event')
           }
         ]
       },
       {
         id: 'abandoned_station',
-        title: '버려진 과학 연구 정거장',
-        text: '외벽이 심하게 파손된 연방의 구형 연구 기지가 중력에 이끌려 서서히 행성으로 추락하고 있습니다.',
+        title_ko: '버려진 과학 연구 정거장',
+        title_en: 'Derelict Science Outpost',
+        text_ko: '외벽이 심하게 파손된 연방의 구형 연구 기지가 중력에 이끌려 서서히 행성으로 추락하고 있습니다.',
+        text_en: 'A damaged Federation orbital research lab is caught in a decaying orbit above a gas giant.',
         choices: [
           {
-            text: '승무원을 파견해 유용한 기술 자료와 자재를 인양한다.',
+            text_ko: '승무원을 파견해 유용한 기술 자료와 자재를 인양한다.',
+            text_en: 'Send an away team to salvage tech data and scrap.',
             action: (gs) => {
               if (Math.random() < 0.75) {
                 const gain = 22 + gs.sector * 8;
                 gs.scrap += gain;
                 gs.scrapTotal += gain;
                 gs.missiles += 2;
-                alertModal('인양 성공!', `연구소 데이터 코어에서 ${gain} 스크랩과 미사일 2발을 회수했습니다.`);
+                alertModal(currentLang === 'en' ? 'Salvage Successful!' : '인양 성공!',
+                  currentLang === 'en' ? `Retrieved ${gain} Scrap and 2 Missiles from the core.` : `연구소 데이터 코어에서 ${gain} 스크랩과 미사일 2발을 회수했습니다.`);
               } else {
                 gs.hull = Math.max(1, gs.hull - 3);
-                alertModal('폭발 발생!', '정거장 내부 반응로가 폭발하며 선체에 3의 피해를 입었습니다.');
+                alertModal(currentLang === 'en' ? 'Reactor Explosion!' : '폭발 발생!',
+                  currentLang === 'en' ? 'Secondary explosion caused 3 damage to our hull.' : '정거장 내부 반응로가 폭발하며 선체에 3의 피해를 입었습니다.');
               }
             }
           },
           {
-            text: '위험성이 너무 높으므로 거리를 둔다.',
+            text_ko: '위험성이 너무 높으므로 거리를 둔다.',
+            text_en: 'Too hazardous. Maintain distance.',
             action: () => closeModal('modal-event')
           }
         ]
       },
       {
         id: 'engi_refugees',
-        title: '방황하는 엔지 피난선',
-        text: '반란군의 폭격을 피해 도주 중인 작은 엔지 선단이 통신을 걸어왔습니다:\n"연방의 순양함... 연료가 고갈되었습니다. 지원을 요청합니다."',
+        title_ko: '방황하는 엔지 피난선',
+        title_en: 'Drifting Engi Refugees',
+        text_ko: '반란군의 폭격을 피해 도주 중인 작은 엔지 선단이 통신을 걸어왔습니다:\n"연방의 순양함... 연료가 고갈되었습니다. 지원을 요청합니다."',
+        text_en: 'A small flotilla of Engi refugees hails your cruiser:\n"Federation vessel... Fuel cells depleted. Assistance requested."',
         choices: [
           {
-            text: '연료 2통을 무상으로 지원한다 (연료 -2).',
+            text_ko: '연료 2통을 무상으로 지원한다 (연료 -2).',
+            text_en: 'Donate 2 Fuel cells to help them (Fuel -2).',
             action: (gs) => {
               if (gs.fuel >= 2) {
                 gs.fuel -= 2;
                 if (Math.random() < 0.5 && gs.crew.length < 6) {
                   const newCrew = {
                     id: 'crew_' + Date.now(),
-                    name: '오토마타',
+                    name: currentLang === 'en' ? 'Automata' : '오토마타',
                     race: 'engi',
                     hp: 70,
                     maxHp: 70,
@@ -2255,38 +2640,22 @@
                     targetRoom: null
                   };
                   gs.crew.push(newCrew);
-                  alertModal('새 승무원 합류!', '감명받은 엔지 기술자 한 명이 아군 함선에 승선하기를 희망했습니다!');
+                  alertModal(currentLang === 'en' ? 'New Crew Member!' : '새 승무원 합류!',
+                    currentLang === 'en' ? 'An appreciative Engi technician has joined your crew!' : '감명받은 엔지 기술자 한 명이 아군 함선에 승선하기를 희망했습니다!');
                 } else {
                   const s = 35 + gs.sector * 10;
                   gs.scrap += s;
-                  alertModal('감사의 보답', `엔지들이 보답으로 희귀 금속 합금 (${s} 스크랩)을 제공했습니다.`);
+                  alertModal(currentLang === 'en' ? 'Grateful Exchange' : '감사의 보답',
+                    currentLang === 'en' ? `The Engi offered ${s} Scrap in high-grade alloy.` : `엔지들이 보답으로 희귀 금속 합금 (${s} 스크랩)을 제공했습니다.`);
                 }
               } else {
-                alertModal('연료 부족', '지원할 수 있는 충분한 연료가 없습니다.');
+                alertModal(t('txtNoFuel'), currentLang === 'en' ? 'Not enough fuel to donate.' : '지원할 수 있는 충분한 연료가 없습니다.');
               }
             }
           },
           {
-            text: '우리 함선도 여유가 없다며 거절한다.',
-            action: () => closeModal('modal-event')
-          }
-        ]
-      },
-      {
-        id: 'slaver_ship',
-        title: '노예 상인의 제안',
-        text: '무장한 불법 노예 상선이 접근해 옵니다: "연방의 순양함이로군. 훌륭한 외계 승무원이 있는데, 스크랩과 교환하지 않겠나?"',
-        choices: [
-          {
-            text: '노예들을 해방시키기 위해 노예선을 공격한다!',
-            action: (gs) => {
-              gs.inCombat = true;
-              gs.enemy = new EnemyShip(gs.sector);
-              closeModal('modal-event');
-            }
-          },
-          {
-            text: '불법 거래를 무시하고 떠난다.',
+            text_ko: '우리 함선도 여유가 없다며 거절한다.',
+            text_en: 'Refuse; we have none to spare.',
             action: () => closeModal('modal-event')
           }
         ]
@@ -2300,7 +2669,7 @@
       ch.innerHTML = '';
       const btn = document.createElement('button');
       btn.className = 'choice-btn';
-      btn.textContent = '확인';
+      btn.textContent = currentLang === 'en' ? 'Confirm' : '확인';
       btn.onclick = () => closeModal('modal-event');
       ch.appendChild(btn);
       openModal('modal-event');
@@ -2312,7 +2681,6 @@
     const canvas = document.getElementById('game-canvas');
     const ctx = canvas.getContext('2d');
 
-    // Starfield
     const stars = [];
     for (let i = 0; i < 140; i++) {
       stars.push({
@@ -2362,10 +2730,9 @@
           room.o2 = Math.max(0, room.o2 - dt * 1.5);
         }
 
-        // Fire mechanics
         if (room.fire > 0) {
           if (room.o2 <= 5) {
-            room.fire = Math.max(0, room.fire - dt * 3.0); // Extinguished by vacuum
+            room.fire = Math.max(0, room.fire - dt * 3.0);
           } else {
             room.o2 = Math.max(0, room.o2 - dt * 4.5);
             if (room.sys && state.systems[room.sys]) {
@@ -2383,33 +2750,27 @@
 
         const curRoom = state.rooms.find(r => r.id === c.currentRoom);
         if (curRoom) {
-          // Suffocation
           if (curRoom.o2 < 15) {
             c.hp = Math.max(0, c.hp - dt * 12);
             if (c.hp <= 0) {
-              addFloatingText(c.x, c.y, `${c.name} 질식 사망!`, '#ff3355');
+              addFloatingText(c.x, c.y, t('txtCrewDied', c.name), '#ff3355');
             }
           }
-          // Fire damage
           if (curRoom.fire > 0 && !RACES[c.race].fireImmune) {
             c.hp = Math.max(0, c.hp - dt * 9);
           }
-          // Medbay healing
           if (curRoom.sys === 'medbay' && medbayPower > 0) {
             c.hp = Math.min(c.maxHp, c.hp + dt * 16 * medbayPower);
           }
-          // Auto firefighting
           if (curRoom.fire > 0) {
             curRoom.fire = Math.max(0, curRoom.fire - dt * 0.9 * RACES[c.race].repairSpeed);
           }
-          // Auto repair
           if (curRoom.sys && state.systems[curRoom.sys] && state.systems[curRoom.sys].damage > 0 && curRoom.fire === 0) {
             const sys = state.systems[curRoom.sys];
             sys.damage = Math.max(0, sys.damage - dt * 0.35 * RACES[c.race].repairSpeed);
           }
         }
 
-        // Movement towards target room
         if (c.targetRoom) {
           const tRoom = state.rooms.find(r => r.id === c.targetRoom);
           if (tRoom) {
@@ -2433,19 +2794,17 @@
         }
       });
 
-      // 3. Enemy Boarders Simulation (선내 침투 적 & 진공 질식)
+      // 3. Enemy Boarders Simulation (Vacuum Suffocation & Melee)
       for (let i = state.boarders.length - 1; i >= 0; i--) {
         const b = state.boarders[i];
         const bRoom = state.rooms.find(r => r.id === b.currentRoom);
 
         if (bRoom) {
-          // Vacuum suffocation of boarders! (Core requested feature)
           if (bRoom.o2 < 15) {
             b.hp = Math.max(0, b.hp - dt * 25);
-            addFloatingText(b.x, b.y - 10, '진공 질식 중!', '#48dbfb');
+            addFloatingText(b.x, b.y - 10, t('txtSuffocating'), '#48dbfb');
           }
 
-          // Combat with friendly crew in the same room
           const defenders = state.crew.filter(c => c.currentRoom === b.currentRoom && c.hp > 0);
           if (defenders.length > 0) {
             const targetDefender = defenders[0];
@@ -2453,7 +2812,6 @@
             b.hp = Math.max(0, b.hp - dt * 14 * RACES[targetDefender.race].combatDamage);
             spawnSparks(b.x, b.y, '#ffaa00', 1);
           } else {
-            // Damage room system if no defenders
             if (bRoom.sys && state.systems[bRoom.sys]) {
               const sys = state.systems[bRoom.sys];
               sys.damage = Math.min(sys.level, sys.damage + dt * 0.25);
@@ -2462,7 +2820,7 @@
         }
 
         if (b.hp <= 0) {
-          addFloatingText(b.x, b.y, '침투 적 격퇴!', '#00ff88');
+          addFloatingText(b.x, b.y, t('txtBoarderDead'), '#00ff88');
           state.boarders.splice(i, 1);
         }
       }
@@ -2488,7 +2846,6 @@
           w.powered = true;
           allocatedWpnPower += w.powerReq;
 
-          // Charge weapon
           if (w.charge < w.cooldown) {
             const wRoom = state.rooms.find(r => r.sys === 'weapons');
             const manningCrew = state.crew.find(c => c.currentRoom === wRoom.id && c.hp > 0);
@@ -2496,7 +2853,6 @@
             w.charge = Math.min(w.cooldown, w.charge + dt * rate);
           }
 
-          // Auto-fire check
           if (state.autofire && w.charge >= w.cooldown && state.enemy && w.targetRoomId) {
             firePlayerWeapon(w);
           }
@@ -2521,7 +2877,6 @@
     function updateEnemyAI(dt) {
       const e = state.enemy;
 
-      // Enemy shield recharge
       const eSh = e.systems.shields;
       if (eSh.bubbleCount < eSh.maxBubbles && e.getEffectivePower('shields') > 0) {
         eSh.rechargeProgress += dt * 0.35;
@@ -2531,7 +2886,6 @@
         }
       }
 
-      // Enemy weapons
       const eWpnPower = e.getEffectivePower('weapons');
       let powerLeft = eWpnPower;
 
@@ -2551,7 +2905,7 @@
       if (!state.enemy || !w.targetRoomId) return;
       if (w.type === 'missile') {
         if (state.missiles <= 0) {
-          addFloatingText(300, 200, '미사일 탄약 부족!', '#ffaa00');
+          addFloatingText(300, 200, t('txtNoMissile'), '#ffaa00');
           return;
         }
         state.missiles--;
@@ -2636,59 +2990,53 @@
 
     function handleProjectileImpact(p) {
       if (p.fromPlayer) {
-        // Impact on Enemy Ship
         const e = state.enemy;
         if (!e) return;
 
         if (Math.random() * 100 < e.getEvasion() && p.shieldPierce < 90) {
-          addFloatingText(p.targetX, p.targetY, 'MISS!', '#3498db');
+          addFloatingText(p.targetX, p.targetY, t('txtMiss'), '#3498db');
           return;
         }
 
-        // Super shield (Boss phase 3)
         if (e.superShield > 0) {
           e.superShield = Math.max(0, e.superShield - 1);
           sound.playShieldHit();
           spawnSparks(p.targetX, p.targetY, '#2ecc71', 8);
-          addFloatingText(p.targetX, p.targetY, 'SUPER SHIELD -1', '#2ecc71');
+          addFloatingText(p.targetX, p.targetY, t('txtSuperShieldHit'), '#2ecc71');
           return;
         }
 
-        // Normal Shields check
         if (p.shieldPierce < 90 && e.systems.shields.bubbleCount > 0) {
           e.systems.shields.bubbleCount--;
           sound.playShieldHit();
           spawnSparks(p.targetX, p.targetY, '#00e5ff', 8);
-          addFloatingText(p.targetX, p.targetY, 'SHIELD HIT', '#00e5ff');
+          addFloatingText(p.targetX, p.targetY, t('txtShieldHit'), '#00e5ff');
           if (e.systems.shields.bubbleCount === 0) sound.playShieldDown();
           return;
         }
 
-        // Direct Room Hit!
         sound.playExplosion();
         spawnSparks(p.targetX, p.targetY, '#ff7675', 14);
 
         if (p.damage > 0) {
           e.hull = Math.max(0, e.hull - p.damage);
-          addFloatingText(p.targetX, p.targetY, `-${p.damage} HULL`, '#ff3355');
+          addFloatingText(p.targetX, p.targetY, t('txtEnemyHullDamaged', p.damage), '#ff3355');
         }
 
-        // System damage
         const r = e.rooms.find(room => room.id === p.targetRoomId);
         if (r && r.sys && e.systems[r.sys]) {
           const sys = e.systems[r.sys];
           sys.damage = Math.min(sys.level, sys.damage + (p.damage || 1));
-          addFloatingText(p.targetX, p.targetY, `SYSTEM DAMAGED!`, '#ffaa00');
+          addFloatingText(p.targetX, p.targetY, t('txtSysDamaged'), '#ffaa00');
         }
 
         if (e.hull <= 0) {
           handleEnemyDefeated();
         }
       } else {
-        // Impact on Player Ship
         const evasion = state.getEvasion();
         if (Math.random() * 100 < evasion && p.shieldPierce < 90) {
-          addFloatingText(p.targetX, p.targetY, 'EVADED!', '#3498db');
+          addFloatingText(p.targetX, p.targetY, t('txtEvaded'), '#3498db');
           return;
         }
 
@@ -2697,7 +3045,7 @@
           sh.bubbleCount--;
           sound.playShieldHit();
           spawnSparks(p.targetX, p.targetY, '#00e5ff', 8);
-          addFloatingText(p.targetX, p.targetY, '방어막 흡수', '#00e5ff');
+          addFloatingText(p.targetX, p.targetY, t('txtShieldAbsorb'), '#00e5ff');
           if (sh.bubbleCount === 0) sound.playShieldDown();
           return;
         }
@@ -2707,7 +3055,7 @@
 
         if (p.damage > 0) {
           state.hull = Math.max(0, state.hull - p.damage);
-          addFloatingText(p.targetX, p.targetY, `-${p.damage} 선체 손상`, '#ff3355');
+          addFloatingText(p.targetX, p.targetY, t('txtHullDamaged', p.damage), '#ff3355');
           sound.playAlarm();
         }
 
@@ -2719,11 +3067,11 @@
           }
           if (Math.random() < p.fireChance) {
             room.fire = Math.min(3, room.fire + 1);
-            addFloatingText(p.targetX, p.targetY, '화재 발생!', '#ff6b6b');
+            addFloatingText(p.targetX, p.targetY, t('txtFireStarted'), '#ff6b6b');
           }
           if (Math.random() < p.breachChance) {
             room.breach = 1;
-            addFloatingText(p.targetX, p.targetY, '선체 균열(진공)!', '#48dbfb');
+            addFloatingText(p.targetX, p.targetY, t('txtBreachStarted'), '#48dbfb');
           }
         }
 
@@ -2745,7 +3093,9 @@
 
       if (e.isBoss) {
         if (e.bossPhase < 3) {
-          alertModal(`플래그십 페이즈 ${e.bossPhase} 격퇴!`, '반란군 기함이 후퇴하며 다음 방어 프로토콜을 가동합니다!');
+          const tTitle = e.bossPhase === 1 ? t('txtBossPhase2') : t('txtBossPhase3');
+          const tDesc = e.bossPhase === 1 ? t('txtBossPhase2Desc') : t('txtBossPhase3Desc');
+          alertModal(tTitle, tDesc);
           state.enemy = new EnemyShip(8, true, e.bossPhase + 1);
           state.saveToStorage();
           return;
@@ -2755,7 +3105,7 @@
         }
       }
 
-      alertModal('전투 승리!', `적 함선을 완파했습니다!\n획득: +${e.scrapReward} 스크랩, +${e.fuelReward} 연료, +${e.missileReward} 미사일`);
+      alertModal(t('txtBattleWon'), t('txtBattleWonDesc', e.scrapReward, e.fuelReward, e.missileReward));
       state.enemy = null;
       state.inCombat = false;
       state.saveToStorage();
@@ -2767,17 +3117,17 @@
       const sub = document.getElementById('gameover-subtitle');
 
       if (victory) {
-        title.innerHTML = '🏆 연방의 구원자 (VICTORY)';
+        title.innerHTML = t('gameOverVictoryTitle');
         title.style.color = '#00ff88';
-        sub.textContent = '반란군 총기함을 완파하고 기밀 데이터를 사령부에 무사히 전달하여 연방을 위기에서 구원했습니다!';
+        sub.textContent = t('gameOverVictoryDesc');
         SHIP_CLASSES.torus.unlocked = true;
         try {
           localStorage.setItem('void_strider_unlocks', JSON.stringify({ torus: true }));
         } catch (e) {}
       } else {
-        title.innerHTML = '💀 함선 완파 (GAME OVER)';
+        title.innerHTML = t('gameOverDefeatTitle');
         title.style.color = '#ff3355';
-        sub.textContent = '선체 장갑이 모두 붕괴되어 우주의 파편으로 사라졌습니다...';
+        sub.textContent = t('gameOverDefeatDesc');
       }
 
       document.getElementById('stat-sector').textContent = state.sector;
@@ -2833,12 +3183,12 @@
       }
 
       for (let i = state.floatingTexts.length - 1; i >= 0; i--) {
-        const t = state.floatingTexts[i];
-        t.life -= dt;
-        if (t.life <= 0) {
+        const tObj = state.floatingTexts[i];
+        tObj.life -= dt;
+        if (tObj.life <= 0) {
           state.floatingTexts.splice(i, 1);
         } else {
-          t.y += t.vy * dt;
+          tObj.y += tObj.vy * dt;
         }
       }
     }
@@ -2849,22 +3199,17 @@
     function render() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Starfield
       renderStars();
-
-      // Ships Layout
       renderPlayerShip();
 
       if (state.enemy) {
         renderEnemyShip();
       }
 
-      // Projectiles & FX
       renderProjectiles();
       renderParticles();
       renderFloatingTexts();
 
-      // Update HTML HUD Elements
       updateHUD();
     }
 
@@ -2884,7 +3229,6 @@
     function renderPlayerShip() {
       ctx.save();
 
-      // Thruster Flame effect behind engines
       const engRoom = state.rooms.find(r => r.sys === 'engines');
       if (engRoom) {
         ctx.save();
@@ -2902,7 +3246,6 @@
         ctx.restore();
       }
 
-      // Ship Outer Hull silhouette
       ctx.fillStyle = '#101d2d';
       ctx.strokeStyle = '#1d3e61';
       ctx.lineWidth = 4;
@@ -2911,7 +3254,6 @@
       ctx.fill();
       ctx.stroke();
 
-      // Shield Bubble
       const sh = state.systems.shields;
       if (sh.bubbleCount > 0) {
         ctx.save();
@@ -2923,24 +3265,21 @@
         ctx.restore();
       }
 
-      // Render Rooms
       state.rooms.forEach(r => {
         const o2Ratio = r.o2 / 100;
-        // Room background (cyan when breathable, reddish vacuum when low O2)
         ctx.fillStyle = o2Ratio < 0.2 ? 'rgba(60, 10, 10, 0.75)' : `rgba(16, 31, 48, ${0.4 + o2Ratio * 0.4})`;
         ctx.fillRect(r.x, r.y, r.w, r.h);
 
-        // Room border
         ctx.strokeStyle = '#274b73';
         ctx.lineWidth = 1.5;
         ctx.strokeRect(r.x, r.y, r.w, r.h);
 
-        // System icon & health
         if (r.sys && state.systems[r.sys]) {
           const sys = state.systems[r.sys];
           ctx.fillStyle = sys.damage >= sys.level ? '#ff3355' : sys.damage > 0 ? '#f39c12' : '#00e5ff';
           ctx.font = '10px monospace';
-          ctx.fillText(`${r.label}`, r.x + 4, r.y + 12);
+          const rLabel = currentLang === 'en' ? (r.label_en || r.label_ko) : r.label_ko;
+          ctx.fillText(`${rLabel}`, r.x + 4, r.y + 12);
 
           const maxL = sys.level;
           const curDmg = Math.floor(sys.damage);
@@ -2950,7 +3289,6 @@
           }
         }
 
-        // Fire overlay
         if (r.fire > 0) {
           ctx.fillStyle = 'rgba(255, 68, 0, 0.45)';
           ctx.fillRect(r.x, r.y, r.w, r.h);
@@ -2959,7 +3297,6 @@
           ctx.fillText('🔥', r.x + r.w / 2 - 7, r.y + r.h / 2 + 5);
         }
 
-        // Breach overlay
         if (r.breach > 0) {
           ctx.strokeStyle = '#00ffff';
           ctx.lineWidth = 2;
@@ -2970,7 +3307,6 @@
         }
       });
 
-      // Render Doors
       state.doors.forEach(d => {
         ctx.fillStyle = d.open ? '#2ecc71' : d.isAir ? '#ff3355' : '#bdc3c7';
         if (d.vertical) {
@@ -2980,7 +3316,6 @@
         }
       });
 
-      // Render Friendly Crew
       state.crew.forEach(c => {
         if (c.hp <= 0) return;
         const raceInfo = RACES[c.race];
@@ -2998,7 +3333,6 @@
         ctx.arc(c.x, c.y, 7, 0, Math.PI * 2);
         ctx.fill();
 
-        // HP bar above head
         const hpRatio = c.hp / c.maxHp;
         ctx.fillStyle = '#060c14';
         ctx.fillRect(c.x - 8, c.y - 14, 16, 3);
@@ -3006,7 +3340,6 @@
         ctx.fillRect(c.x - 8, c.y - 14, 16 * hpRatio, 3);
       });
 
-      // Render Enemy Boarders (선내 침투 적)
       state.boarders.forEach(b => {
         ctx.fillStyle = '#e74c3c';
         ctx.beginPath();
@@ -3035,7 +3368,6 @@
 
       ctx.save();
 
-      // Enemy Hull
       ctx.fillStyle = '#221118';
       ctx.strokeStyle = '#611d29';
       ctx.lineWidth = 4;
@@ -3044,7 +3376,6 @@
       ctx.fill();
       ctx.stroke();
 
-      // Super Shield or Normal Shield
       if (e.superShield > 0) {
         ctx.strokeStyle = 'rgba(46, 204, 113, 0.85)';
         ctx.lineWidth = 4;
@@ -3059,7 +3390,6 @@
         ctx.stroke();
       }
 
-      // Enemy Rooms
       e.rooms.forEach(r => {
         ctx.fillStyle = '#180a10';
         ctx.fillRect(r.x, r.y, r.w, r.h);
@@ -3070,7 +3400,8 @@
 
         ctx.fillStyle = '#ff7675';
         ctx.font = '10px monospace';
-        ctx.fillText(r.label, r.x + 4, r.y + 12);
+        const rLabel = currentLang === 'en' ? (r.label_en || r.label_ko) : r.label_ko;
+        ctx.fillText(rLabel, r.x + 4, r.y + 12);
 
         if (r.sys && e.systems[r.sys]) {
           const sys = e.systems[r.sys];
@@ -3080,7 +3411,6 @@
           }
         }
 
-        // Targeted reticle
         const targetedBy = state.weapons.filter(w => w.targetRoomId === r.id);
         if (targetedBy.length > 0) {
           ctx.strokeStyle = '#ffaa00';
@@ -3092,10 +3422,9 @@
         }
       });
 
-      // Enemy Name & Hull Bar
       ctx.fillStyle = '#ff7675';
       ctx.font = 'bold 12px monospace';
-      ctx.fillText(e.name, 470, 50);
+      ctx.fillText(e.getName(), 470, 50);
 
       const hullRatio = Math.max(0, e.hull / e.maxHull);
       ctx.fillStyle = '#060c14';
@@ -3143,11 +3472,11 @@
 
     function renderFloatingTexts() {
       ctx.save();
-      state.floatingTexts.forEach(t => {
-        ctx.fillStyle = t.color;
-        ctx.globalAlpha = Math.min(1, t.life);
+      state.floatingTexts.forEach(tObj => {
+        ctx.fillStyle = tObj.color;
+        ctx.globalAlpha = Math.min(1, tObj.life);
         ctx.font = 'bold 12px monospace';
-        ctx.fillText(t.text, t.x, t.y);
+        ctx.fillText(tObj.text, tObj.x, tObj.y);
       });
       ctx.restore();
     }
@@ -3162,9 +3491,11 @@
       document.getElementById('hud-scrap-txt').textContent = state.scrap;
       document.getElementById('hud-fuel-txt').textContent = state.fuel;
       document.getElementById('hud-missiles-txt').textContent = state.missiles;
-      document.getElementById('hud-sector-info').textContent = `SECTOR ${state.sector}: ${getSectorName(state.sector)}`;
 
-      // Hull segments
+      const secNames = I18N[currentLang].sectorNames;
+      const sName = secNames[state.sector - 1] || 'Unknown';
+      document.getElementById('hud-sector-info').textContent = `SECTOR ${state.sector}: ${sName}`;
+
       const segContainer = document.getElementById('hud-hull-segments');
       segContainer.innerHTML = '';
       for (let i = 0; i < state.maxHull; i++) {
@@ -3173,7 +3504,6 @@
         segContainer.appendChild(seg);
       }
 
-      // Reactor pool
       const rBars = document.getElementById('reactor-pool-bars');
       rBars.innerHTML = '';
       const avail = state.getAvailablePower();
@@ -3189,21 +3519,20 @@
       renderCrewHUD();
     }
 
-    function getSectorName(sec) {
-      const names = [
-        '연방 국경 수비 구역', '민간 교역 항로', '엔지 기술 연구 성계',
-        '해적 무법 지대', '맨티스 전투 성역', '락맨 소행성대',
-        '반란군 대함대 선봉대', '사령부 최후의 보루 (FINAL BOSS)'
-      ];
-      return names[sec - 1] || '미지의 심우주';
-    }
-
     function renderSystemsHUD() {
       const container = document.getElementById('systems-container');
       container.innerHTML = '';
 
       const sysKeys = ['shields', 'engines', 'weapons', 'oxygen', 'medbay', 'piloting'];
-      const labels = { shields: '쉴드', engines: '엔진', weapons: '무기', oxygen: '산소', medbay: '의료', piloting: '조종' };
+      const dict = I18N[currentLang];
+      const shortLabels = {
+        shields: dict.sysShortShields,
+        engines: dict.sysShortEngines,
+        weapons: dict.sysShortWeapons,
+        oxygen: dict.sysShortOxygen,
+        medbay: dict.sysShortMedbay,
+        piloting: dict.sysShortPiloting
+      };
 
       sysKeys.forEach(k => {
         const sys = state.systems[k];
@@ -3212,7 +3541,7 @@
 
         const track = document.createElement('div');
         track.className = 'sys-power-track';
-        track.title = `${labels[k]} 전력 할당 (클릭: +1 / 우클릭: -1)`;
+        track.title = `${shortLabels[k]}`;
 
         for (let i = 0; i < sys.level; i++) {
           const pip = document.createElement('div');
@@ -3247,7 +3576,7 @@
 
         const label = document.createElement('div');
         label.className = 'sys-icon-label';
-        label.innerHTML = `<span class="sys-name">${labels[k]}</span><span>${sys.power}/${sys.level}</span>`;
+        label.innerHTML = `<span class="sys-name">${shortLabels[k]}</span><span>${sys.power}/${sys.level}</span>`;
         col.appendChild(label);
 
         container.appendChild(col);
@@ -3277,14 +3606,17 @@
         const card = document.createElement('div');
         card.className = 'weapon-card' + (state.selectedWeaponIndex === idx ? ' selected' : '') + (!w.powered ? ' unpowered' : '');
 
+        const wName = getWeaponName(w);
+        const wTarget = w.targetRoomId ? `${currentLang === 'en' ? 'Target: ' : '조준: '}${w.targetRoomId}` : (currentLang === 'en' ? 'Untargeted' : '미조준');
+
         card.innerHTML = `
           <div class="wpn-top">
-            <span class="wpn-name">${idx + 1}. ${w.name}</span>
+            <span class="wpn-name">${idx + 1}. ${wName}</span>
             <span class="wpn-power-req">⚡${w.powerReq}</span>
           </div>
           <div class="wpn-info">
-            <span>${w.shots > 1 ? w.shots + '연발' : '단발'} (${w.damage}딜)</span>
-            <span class="wpn-target-tag">${w.targetRoomId ? '조준: ' + w.targetRoomId : '미조준'}</span>
+            <span>${w.shots > 1 ? w.shots + (currentLang === 'en' ? ' shots' : '연발') : (currentLang === 'en' ? 'Single' : '단발')} (${w.damage} dmg)</span>
+            <span class="wpn-target-tag">${wTarget}</span>
           </div>
           <div class="wpn-charge-bg">
             <div class="wpn-charge-bar ${w.charge >= w.cooldown ? 'ready' : ''}" style="width: ${(w.charge / w.cooldown) * 100}%"></div>
@@ -3302,19 +3634,21 @@
 
     function renderCrewHUD() {
       const container = document.getElementById('crew-roster-container');
-      container.innerHTML = '<div class="crew-roster-title">승무원 명단</div>';
+      container.innerHTML = `<div class="crew-roster-title" id="hud-crew-title">${t('crewTitle')}</div>`;
 
       state.crew.forEach(c => {
         const card = document.createElement('div');
         card.className = 'crew-card' + (state.selectedCrew === c ? ' selected' : '');
 
         const rInfo = RACES[c.race];
+        const rName = getRaceName(c.race);
+
         card.innerHTML = `
           <div class="crew-avatar" style="background:${rInfo.color}">${c.name[0]}</div>
           <div class="crew-details">
             <div class="crew-name-row">
               <span>${c.name}</span>
-              <span style="color:${rInfo.color}">${rInfo.name}</span>
+              <span style="color:${rInfo.color}">${rName}</span>
             </div>
             <div class="crew-hp-bar">
               <div class="crew-hp-fill" style="width:${(c.hp / c.maxHp) * 100}%"></div>
@@ -3340,7 +3674,6 @@
       const mx = e.clientX - rect.left;
       const my = e.clientY - rect.top;
 
-      // 1. Click enemy room to target
       if (state.enemy) {
         for (let r of state.enemy.rooms) {
           if (mx >= r.x && mx <= r.x + r.w && my >= r.y && my <= r.y + r.h) {
@@ -3348,14 +3681,14 @@
               const w = state.weapons[state.selectedWeaponIndex];
               w.targetRoomId = r.id;
               sound.playClick();
-              addFloatingText(mx, my, `조준 설정: ${r.label}`, '#ffaa00');
+              const rLabel = currentLang === 'en' ? (r.label_en || r.label_ko) : r.label_ko;
+              addFloatingText(mx, my, t('txtTargetSet', rLabel), '#ffaa00');
               return;
             }
           }
         }
       }
 
-      // 2. Click friendly crew
       for (let c of state.crew) {
         if (Math.hypot(mx - c.x, my - c.y) < 16) {
           sound.playClick();
@@ -3364,19 +3697,17 @@
         }
       }
 
-      // 3. Move order to selected crew
       if (state.selectedCrew) {
         for (let r of state.rooms) {
           if (mx >= r.x && mx <= r.x + r.w && my >= r.y && my <= r.y + r.h) {
             sound.playClick();
             state.selectedCrew.targetRoom = r.id;
-            addFloatingText(mx, my, `${state.selectedCrew.name} 이동 명령`, '#00e5ff');
+            addFloatingText(mx, my, t('txtMoveOrder', state.selectedCrew.name), '#00e5ff');
             return;
           }
         }
       }
 
-      // 4. Click door to toggle
       for (let d of state.doors) {
         const hitDist = d.vertical ? Math.abs(mx - d.x) < 8 && Math.abs(my - d.y) < 14 : Math.abs(mx - d.x) < 14 && Math.abs(my - d.y) < 8;
         if (hitDist) {
@@ -3406,7 +3737,7 @@
       if (e.code === 'KeyA') {
         state.autofire = !state.autofire;
         const btn = document.getElementById('btn-autofire');
-        btn.textContent = `자동 발사: ${state.autofire ? 'ON' : 'OFF'}`;
+        btn.textContent = t('autofireBtn', state.autofire);
         btn.classList.toggle('active', state.autofire);
         sound.playClick();
       }
@@ -3421,8 +3752,10 @@
     });
 
     // --------------------------------------------------------------------------
-    // 15. DOOR CONTROL FUNCTIONS
+    // 15. CONTROLS & LANGUAGE TOGGLE
     // --------------------------------------------------------------------------
+    document.getElementById('btn-lang-toggle').onclick = toggleLanguage;
+
     document.getElementById('btn-doors-open').onclick = () => {
       state.doors.forEach(d => { if (!d.isAir) d.open = true; });
       sound.playClick();
@@ -3441,7 +3774,7 @@
         if (d.isAir) d.open = !anyAirOpen;
       });
       sound.playClick();
-      addFloatingText(180, 160, anyAirOpen ? '에어락 폐쇄' : '⚠️ 긴급 진공 배출 가동!', '#ff3355');
+      addFloatingText(180, 160, anyAirOpen ? t('txtAirlockClose') : t('txtAirlockOpen'), '#ff3355');
     }
 
     document.getElementById('btn-sound-toggle').onclick = () => {
@@ -3490,7 +3823,7 @@
     document.getElementById('btn-autofire').onclick = () => {
       state.autofire = !state.autofire;
       const btn = document.getElementById('btn-autofire');
-      btn.textContent = `자동 발사: ${state.autofire ? 'ON' : 'OFF'}`;
+      btn.textContent = t('autofireBtn', state.autofire);
       btn.classList.toggle('active', state.autofire);
     };
 
@@ -3505,7 +3838,6 @@
       const w = mapCanvas.width;
       const h = mapCanvas.height;
 
-      // Draw Nebulae
       state.map.nodes.filter(n => n.type === 'nebula').forEach(n => {
         const nx = 60 + n.col * ((w - 120) / 6);
         const ny = 40 + n.yRatio * (h - 80);
@@ -3515,7 +3847,6 @@
         mapCtx.fill();
       });
 
-      // Connections
       state.map.nodes.forEach(fn => {
         const fx = 60 + fn.col * ((w - 120) / 6);
         const fy = 40 + fn.yRatio * (h - 80);
@@ -3536,7 +3867,6 @@
         });
       });
 
-      // Rebel Fleet Pursuit Line
       const fleetX = 60 + state.rebelFleetCol * ((w - 120) / 6);
       mapCtx.strokeStyle = 'rgba(255, 51, 85, 0.8)';
       mapCtx.lineWidth = 3;
@@ -3550,7 +3880,6 @@
       mapCtx.fillStyle = 'rgba(255, 51, 85, 0.12)';
       mapCtx.fillRect(0, 0, fleetX, h);
 
-      // Draw Nodes
       state.map.nodes.forEach(n => {
         const nx = 60 + n.col * ((w - 120) / 6);
         const ny = 40 + n.yRatio * (h - 80);
@@ -3565,7 +3894,7 @@
 
         mapCtx.fillStyle = isCurrent ? '#00e5ff' : '#8fa8c2';
         mapCtx.font = '10px monospace';
-        mapCtx.fillText(n.label, nx - 20, ny - 10);
+        mapCtx.fillText(state.map.getNodeLabel(n), nx - 20, ny - 10);
       });
     }
 
@@ -3589,11 +3918,11 @@
 
     function executeJump(targetNode) {
       if (state.fuel <= 0) {
-        alertModal('연료 고갈!', 'FTL 점프를 위한 연료가 바닥났습니다! 조난 신호를 송출해야 합니다.');
+        alertModal(t('txtNoFuel'), t('txtNoFuelDesc'));
         return;
       }
       if (state.inCombat) {
-        alertModal('전투 중!', '적 함선과 교전 중에는 FTL 점프를 실행할 수 없습니다.');
+        alertModal(t('txtInCombat'), t('txtInCombatDesc'));
         return;
       }
 
@@ -3602,31 +3931,26 @@
       state.currentBeacon = targetNode;
       targetNode.visited = true;
 
-      // Fleet advances
       const fleetAdvance = targetNode.type === 'nebula' ? 0.45 : 0.9;
       state.rebelFleetCol += fleetAdvance;
 
       sound.playJump();
       closeModal('modal-map');
 
-      // Auto-save on jump
       state.saveToStorage();
 
-      // Check Sector Exit
       if (targetNode.type === 'exit') {
         advanceSector();
         return;
       }
 
-      // Check Boss Encounter
       if (targetNode.type === 'boss') {
         startBossEncounter();
         return;
       }
 
-      // Fleet Catch Encounter
       if (targetNode.col <= state.rebelFleetCol) {
-        alertModal('반란군 선봉대 포위!', '반란군 추격 함대에게 따라잡혔습니다! 정예 전투함이 기습합니다!');
+        alertModal(t('txtFleetAmbush'), t('txtFleetAmbushDesc'));
         state.inCombat = true;
         state.enemy = new EnemyShip(state.sector + 1);
         return;
@@ -3651,15 +3975,18 @@
     }
 
     function triggerEvent(ev) {
-      document.getElementById('event-title').innerHTML = `<span>📡</span> ${ev.title}`;
-      document.getElementById('event-text').textContent = ev.text;
+      const evTitle = currentLang === 'en' ? ev.title_en : ev.title_ko;
+      const evText = currentLang === 'en' ? ev.text_en : ev.text_ko;
+
+      document.getElementById('event-title').innerHTML = `<span>📡</span> ${evTitle}`;
+      document.getElementById('event-text').textContent = evText;
 
       const ch = document.getElementById('event-choices');
       ch.innerHTML = '';
       ev.choices.forEach(c => {
         const btn = document.createElement('button');
         btn.className = 'choice-btn';
-        btn.textContent = c.text;
+        btn.textContent = currentLang === 'en' ? c.text_en : c.text_ko;
         btn.onclick = () => c.action(state);
         ch.appendChild(btn);
       });
@@ -3674,12 +4001,13 @@
         state.currentBeacon = state.map.nodes[0];
         state.rebelFleetCol = 0.5;
         state.saveToStorage();
-        alertModal(`섹터 ${state.sector} 진입`, `${getSectorName(state.sector)}에 도달했습니다. 경계를 늦추지 마십시오.`);
+        const sName = I18N[currentLang].sectorNames[state.sector - 1];
+        alertModal(t('txtSectorEntry', state.sector, sName), '');
       }
     }
 
     function startBossEncounter() {
-      alertModal('⚠️ 반란군 플래그십 조우!', '반란군 총기함이 위용을 드러냈습니다! 연방의 마지막 희망이 이 함전에 달려 있습니다!');
+      alertModal(t('txtBossArrival'), t('txtBossArrivalDesc'));
       state.inCombat = true;
       state.enemy = new EnemyShip(8, true, 1);
     }
@@ -3694,16 +4022,15 @@
       const grid = document.getElementById('upgrades-grid');
       grid.innerHTML = '';
 
-      // 1. Reactor upgrade
       const rCost = 20 + state.reactor * 5;
       const rCard = document.createElement('div');
       rCard.className = 'upgrade-card';
       rCard.innerHTML = `
-        <div class="upg-title"><span>원자로 출력 증설</span><span>${state.reactor} Bars</span></div>
-        <div style="font-size:11px; color:var(--text-dim);">총 전력 용량을 1칸 증설합니다.</div>
+        <div class="upg-title"><span>${t('upgReactorTitle')}</span><span>${state.reactor} Bars</span></div>
+        <div style="font-size:11px; color:var(--text-dim);">${t('upgReactorDesc')}</div>
         <div class="upg-action-row">
           <span class="upg-cost">${rCost} ⚙️</span>
-          <button class="upg-buy-btn" ${state.scrap < rCost ? 'disabled' : ''}>증설</button>
+          <button class="upg-buy-btn" ${state.scrap < rCost ? 'disabled' : ''}>${t('upgBtnInstall')}</button>
         </div>
       `;
       rCard.querySelector('.upg-buy-btn').onclick = () => {
@@ -3717,8 +4044,14 @@
       };
       grid.appendChild(rCard);
 
-      // 2. Subsystems upgrades
-      const sysNames = { shields: '방어막(Shields)', engines: '엔진(Engines)', weapons: '무기 관제(Weapons)', oxygen: '산소(Oxygen)', medbay: '의료실(Medbay)', piloting: '조종실(Piloting)' };
+      const sysNames = {
+        shields: t('sysShields'),
+        engines: t('sysEngines'),
+        weapons: t('sysWeapons'),
+        oxygen: t('sysOxygen'),
+        medbay: t('sysMedbay'),
+        piloting: t('sysPiloting')
+      };
 
       for (let k in sysNames) {
         const sys = state.systems[k];
@@ -3736,7 +4069,7 @@
           <div class="upg-bars">${pipsHtml}</div>
           <div class="upg-action-row">
             <span class="upg-cost">${sys.level < sys.maxLevel ? cost + ' ⚙️' : 'MAX'}</span>
-            <button class="upg-buy-btn" ${sys.level >= sys.maxLevel || state.scrap < cost ? 'disabled' : ''}>강화</button>
+            <button class="upg-buy-btn" ${sys.level >= sys.maxLevel || state.scrap < cost ? 'disabled' : ''}>${t('upgBtnUpgrade')}</button>
           </div>
         `;
 
@@ -3755,73 +4088,76 @@
     }
 
     // --------------------------------------------------------------------------
-    // 19. STORE MODAL (Repairs, Fuel, Weapons, Crew Hiring)
+    // 19. STORE MODAL
     // --------------------------------------------------------------------------
     function openStoreModal() {
       document.getElementById('store-current-scrap').textContent = state.scrap;
       document.getElementById('store-current-hull').textContent = `${state.hull} / ${state.maxHull}`;
       const content = document.getElementById('store-content');
 
+      const w1 = WEAPON_TYPES.BURST_LASER_2;
+      const w2 = WEAPON_TYPES.HALBERD_BEAM;
+      const w3 = WEAPON_TYPES.BREACH_MISSILE;
+
       content.innerHTML = `
-        <div class="store-category-title">선체 수리 및 군수 보급품</div>
+        <div class="store-category-title">${t('storeCatRepairs')}</div>
         <div class="store-items-row">
           <div class="store-item-card">
-            <span class="store-item-name">장갑 긴급 수리 (+5 HULL)</span>
-            <span class="store-item-desc">파손된 선체 장갑판을 복구합니다.</span>
-            <button class="upg-buy-btn" id="btn-buy-repair" ${state.scrap < 15 || state.hull >= state.maxHull ? 'disabled' : ''}>15 ⚙️ 수리</button>
+            <span class="store-item-name">${t('storeRepairName')}</span>
+            <span class="store-item-desc">${t('storeRepairDesc')}</span>
+            <button class="upg-buy-btn" id="btn-buy-repair" ${state.scrap < 15 || state.hull >= state.maxHull ? 'disabled' : ''}>${t('storeBtnRepair')}</button>
           </div>
           <div class="store-item-card">
-            <span class="store-item-name">FTL 연료 전지 (+3)</span>
-            <span class="store-item-desc">비콘 도약에 필수적인 고밀도 연료.</span>
-            <button class="upg-buy-btn" id="btn-buy-fuel" ${state.scrap < 9 ? 'disabled' : ''}>9 ⚙️ 구매</button>
+            <span class="store-item-name">${t('storeFuelName')}</span>
+            <span class="store-item-desc">${t('storeFuelDesc')}</span>
+            <button class="upg-buy-btn" id="btn-buy-fuel" ${state.scrap < 9 ? 'disabled' : ''}>${t('storeBtnFuel')}</button>
           </div>
           <div class="store-item-card">
-            <span class="store-item-name">미사일 탄약 팩 (+4)</span>
-            <span class="store-item-desc">장갑 관통 결전 미사일 보충.</span>
-            <button class="upg-buy-btn" id="btn-buy-missiles" ${state.scrap < 14 ? 'disabled' : ''}>14 ⚙️ 구매</button>
+            <span class="store-item-name">${t('storeMissileName')}</span>
+            <span class="store-item-desc">${t('storeMissileDesc')}</span>
+            <button class="upg-buy-btn" id="btn-buy-missiles" ${state.scrap < 14 ? 'disabled' : ''}>${t('storeBtnMissiles')}</button>
           </div>
         </div>
 
-        <div class="store-category-title" style="margin-top:16px;">무기 암시장 (WEAPONS MARKET)</div>
+        <div class="store-category-title" style="margin-top:16px;">${t('storeCatWeapons')}</div>
         <div class="store-items-row">
           <div class="store-item-card">
-            <span class="store-item-name">${WEAPON_TYPES.BURST_LASER_2.name}</span>
-            <span class="store-item-desc">${WEAPON_TYPES.BURST_LASER_2.desc}</span>
-            <button class="upg-buy-btn" id="btn-buy-w1" ${state.scrap < WEAPON_TYPES.BURST_LASER_2.cost || state.weapons.length >= 4 ? 'disabled' : ''}>${WEAPON_TYPES.BURST_LASER_2.cost} ⚙️ 장착</button>
+            <span class="store-item-name">${getWeaponName(w1)}</span>
+            <span class="store-item-desc">${getWeaponDesc(w1)}</span>
+            <button class="upg-buy-btn" id="btn-buy-w1" ${state.scrap < w1.cost || state.weapons.length >= 4 ? 'disabled' : ''}>${t('storeBtnEquip', w1.cost)}</button>
           </div>
           <div class="store-item-card">
-            <span class="store-item-name">${WEAPON_TYPES.HALBERD_BEAM.name}</span>
-            <span class="store-item-desc">${WEAPON_TYPES.HALBERD_BEAM.desc}</span>
-            <button class="upg-buy-btn" id="btn-buy-w2" ${state.scrap < WEAPON_TYPES.HALBERD_BEAM.cost || state.weapons.length >= 4 ? 'disabled' : ''}>${WEAPON_TYPES.HALBERD_BEAM.cost} ⚙️ 장착</button>
+            <span class="store-item-name">${getWeaponName(w2)}</span>
+            <span class="store-item-desc">${getWeaponDesc(w2)}</span>
+            <button class="upg-buy-btn" id="btn-buy-w2" ${state.scrap < w2.cost || state.weapons.length >= 4 ? 'disabled' : ''}>${t('storeBtnEquip', w2.cost)}</button>
           </div>
           <div class="store-item-card">
-            <span class="store-item-name">${WEAPON_TYPES.BREACH_MISSILE.name}</span>
-            <span class="store-item-desc">${WEAPON_TYPES.BREACH_MISSILE.desc}</span>
-            <button class="upg-buy-btn" id="btn-buy-w3" ${state.scrap < WEAPON_TYPES.BREACH_MISSILE.cost || state.weapons.length >= 4 ? 'disabled' : ''}>${WEAPON_TYPES.BREACH_MISSILE.cost} ⚙️ 장착</button>
+            <span class="store-item-name">${getWeaponName(w3)}</span>
+            <span class="store-item-desc">${getWeaponDesc(w3)}</span>
+            <button class="upg-buy-btn" id="btn-buy-w3" ${state.scrap < w3.cost || state.weapons.length >= 4 ? 'disabled' : ''}>${t('storeBtnEquip', w3.cost)}</button>
           </div>
         </div>
 
-        <div class="store-category-title" style="margin-top:16px;">외계 용병 고용소 (CREW RECRUITMENT)</div>
+        <div class="store-category-title" style="margin-top:16px;">${t('storeCatCrew')}</div>
         <div class="store-items-row">
           <div class="store-item-card">
-            <span class="store-item-name" style="color:#3498db;">엔지니어 (Engi)</span>
-            <span class="store-item-desc">2배 빠른 수리 속도. 시스템 수리 특화.</span>
-            <button class="upg-buy-btn" id="btn-buy-c-engi" ${state.scrap < 45 || state.crew.length >= 6 ? 'disabled' : ''}>45 ⚙️ 고용</button>
+            <span class="store-item-name" style="color:#3498db;">${getRaceName('engi')}</span>
+            <span class="store-item-desc">${currentLang === 'en' ? RACES.engi.desc_en : RACES.engi.desc_ko}</span>
+            <button class="upg-buy-btn" id="btn-buy-c-engi" ${state.scrap < 45 || state.crew.length >= 6 ? 'disabled' : ''}>${t('storeBtnHire', 45)}</button>
           </div>
           <div class="store-item-card">
-            <span class="store-item-name" style="color:#2ecc71;">맨티스 전사 (Mantis)</span>
-            <span class="store-item-desc">1.5배 백병전 피해. 선내 침투 적 격퇴 특화.</span>
-            <button class="upg-buy-btn" id="btn-buy-c-mantis" ${state.scrap < 50 || state.crew.length >= 6 ? 'disabled' : ''}>50 ⚙️ 고용</button>
+            <span class="store-item-name" style="color:#2ecc71;">${getRaceName('mantis')}</span>
+            <span class="store-item-desc">${currentLang === 'en' ? RACES.mantis.desc_en : RACES.mantis.desc_ko}</span>
+            <button class="upg-buy-btn" id="btn-buy-c-mantis" ${state.scrap < 50 || state.crew.length >= 6 ? 'disabled' : ''}>${t('storeBtnHire', 50)}</button>
           </div>
           <div class="store-item-card">
-            <span class="store-item-name" style="color:#f1c40f;">졸탄 생체발전관 (Zoltan)</span>
-            <span class="store-item-desc">탑승 룸에 상시 무료 전력 +1 공급.</span>
-            <button class="upg-buy-btn" id="btn-buy-c-zoltan" ${state.scrap < 50 || state.crew.length >= 6 ? 'disabled' : ''}>50 ⚙️ 고용</button>
+            <span class="store-item-name" style="color:#f1c40f;">${getRaceName('zoltan')}</span>
+            <span class="store-item-desc">${currentLang === 'en' ? RACES.zoltan.desc_en : RACES.zoltan.desc_ko}</span>
+            <button class="upg-buy-btn" id="btn-buy-c-zoltan" ${state.scrap < 50 || state.crew.length >= 6 ? 'disabled' : ''}>${t('storeBtnHire', 50)}</button>
           </div>
         </div>
       `;
 
-      // Handlers
       document.getElementById('btn-buy-repair').onclick = () => {
         if (state.scrap >= 15 && state.hull < state.maxHull) {
           state.scrap -= 15;
@@ -3850,30 +4186,30 @@
         }
       };
       document.getElementById('btn-buy-w1').onclick = () => {
-        const cost = WEAPON_TYPES.BURST_LASER_2.cost;
+        const cost = w1.cost;
         if (state.scrap >= cost && state.weapons.length < 4) {
           state.scrap -= cost;
-          state.weapons.push({ ...WEAPON_TYPES.BURST_LASER_2, charge: 0, powered: true, targetRoomId: null });
+          state.weapons.push({ ...w1, charge: 0, powered: true, targetRoomId: null });
           sound.playClick();
           state.saveToStorage();
           openStoreModal();
         }
       };
       document.getElementById('btn-buy-w2').onclick = () => {
-        const cost = WEAPON_TYPES.HALBERD_BEAM.cost;
+        const cost = w2.cost;
         if (state.scrap >= cost && state.weapons.length < 4) {
           state.scrap -= cost;
-          state.weapons.push({ ...WEAPON_TYPES.HALBERD_BEAM, charge: 0, powered: true, targetRoomId: null });
+          state.weapons.push({ ...w2, charge: 0, powered: true, targetRoomId: null });
           sound.playClick();
           state.saveToStorage();
           openStoreModal();
         }
       };
       document.getElementById('btn-buy-w3').onclick = () => {
-        const cost = WEAPON_TYPES.BREACH_MISSILE.cost;
+        const cost = w3.cost;
         if (state.scrap >= cost && state.weapons.length < 4) {
           state.scrap -= cost;
-          state.weapons.push({ ...WEAPON_TYPES.BREACH_MISSILE, charge: 0, powered: true, targetRoomId: null });
+          state.weapons.push({ ...w3, charge: 0, powered: true, targetRoomId: null });
           sound.playClick();
           state.saveToStorage();
           openStoreModal();
@@ -3882,7 +4218,7 @@
       document.getElementById('btn-buy-c-engi').onclick = () => {
         if (state.scrap >= 45 && state.crew.length < 6) {
           state.scrap -= 45;
-          state.crew.push({ id: 'c_' + Date.now(), name: '엔지 기술원', race: 'engi', hp: 70, maxHp: 70, currentRoom: 'engines', x: 80, y: 150, targetRoom: null });
+          state.crew.push({ id: 'c_' + Date.now(), name: currentLang === 'en' ? 'Engi Tech' : '엔지 기술원', race: 'engi', hp: 70, maxHp: 70, currentRoom: 'engines', x: 80, y: 150, targetRoom: null });
           sound.playClick();
           state.saveToStorage();
           openStoreModal();
@@ -3891,7 +4227,7 @@
       document.getElementById('btn-buy-c-mantis').onclick = () => {
         if (state.scrap >= 50 && state.crew.length < 6) {
           state.scrap -= 50;
-          state.crew.push({ id: 'c_' + Date.now(), name: '맨티스 강습병', race: 'mantis', hp: 100, maxHp: 100, currentRoom: 'weapons', x: 210, y: 190, targetRoom: null });
+          state.crew.push({ id: 'c_' + Date.now(), name: currentLang === 'en' ? 'Mantis Striker' : '맨티스 강습병', race: 'mantis', hp: 100, maxHp: 100, currentRoom: 'weapons', x: 210, y: 190, targetRoom: null });
           sound.playClick();
           state.saveToStorage();
           openStoreModal();
@@ -3900,7 +4236,7 @@
       document.getElementById('btn-buy-c-zoltan').onclick = () => {
         if (state.scrap >= 50 && state.crew.length < 6) {
           state.scrap -= 50;
-          state.crew.push({ id: 'c_' + Date.now(), name: '졸탄 사절', race: 'zoltan', hp: 70, maxHp: 70, currentRoom: 'shields', x: 210, y: 110, targetRoom: null });
+          state.crew.push({ id: 'c_' + Date.now(), name: currentLang === 'en' ? 'Zoltan Envoy' : '졸탄 사절', race: 'zoltan', hp: 70, maxHp: 70, currentRoom: 'shields', x: 210, y: 110, targetRoom: null });
           sound.playClick();
           state.saveToStorage();
           openStoreModal();
@@ -3922,11 +4258,14 @@
         const card = document.createElement('div');
         card.className = 'ship-choice-card' + (state.selectedShipId === s.id ? ' selected' : '') + (!s.unlocked ? ' locked' : '');
 
+        const sName = currentLang === 'en' ? s.name_en : s.name_ko;
+        const sDesc = currentLang === 'en' ? s.desc_en : s.desc_ko;
+
         card.innerHTML = `
-          <div style="font-weight:bold; font-size:14px; color:var(--accent-cyan); margin-bottom:4px;">${s.name}</div>
-          <div style="font-size:11px; color:var(--text-dim); line-height:1.4;">${s.desc}</div>
+          <div style="font-weight:bold; font-size:14px; color:var(--accent-cyan); margin-bottom:4px;">${sName}</div>
+          <div style="font-size:11px; color:var(--text-dim); line-height:1.4;">${sDesc}</div>
           <div style="margin-top:8px; font-size:10px; color:${s.unlocked ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight:bold;">
-            ${s.unlocked ? '출격 승인 완료' : '🔒 잠김 (플래그십 클리어 시 해금)'}
+            ${s.unlocked ? t('shipApproved') : t('shipLocked')}
           </div>
         `;
 
@@ -3939,7 +4278,6 @@
         grid.appendChild(card);
       }
 
-      // Check if continue save exists
       const btnContinue = document.getElementById('btn-continue-run');
       const hasSave = !!localStorage.getItem('void_strider_active_run');
       btnContinue.style.display = hasSave ? 'block' : 'none';
@@ -3985,8 +4323,9 @@
       renderStartScreen();
     };
 
-    // Auto resize and start game loop
+    // Auto initialize, set language and run loop
     resizeCanvas();
+    updateStaticTexts();
     renderStartScreen();
     requestAnimationFrame(gameLoop);
   </script>
